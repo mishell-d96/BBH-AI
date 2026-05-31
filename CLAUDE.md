@@ -30,6 +30,14 @@ Hunt for vulnerability classes that demonstrate **real business impact** and are
 
 **Require a concrete impact hypothesis before deep testing.** State it explicitly: "If X, then an attacker can do Y to asset Z, causing business impact W." No hypothesis → no deep testing.
 
+## MAP-FIRST GATE (before any vuln-class skill)
+Hunt the target as a whole, not endpoint-by-endpoint. **Before engaging any vulnerability-class skill, a target map and the relevant happy-flow baseline must already exist.**
+- Run **`/recon-mapper`** first: it maps the full attack surface, baselines the intended ("happy") flows, scores candidates by **likelihood × impact × exposure**, and routes each to the right skill. (Use `/recon` only for a quick, shallow sketch.)
+- Drive testing from the **impact-scored candidate list**, highest-priority first — not from whichever signal you noticed first.
+- Work from the **crown jewels backward**: auth/session, authorization/tenancy, money movement, sensitive-data stores, server-side fetch/processing, admin. Pick the vuln classes that threaten *those*.
+- Prefer **chains** that escalate to real impact (IDOR→ATO, SSRF→metadata→RCE, open-redirect→OAuth token theft) over filing isolated low-severity bugs.
+- If you're about to test cold (no map / no baseline), **stop and map first.**
+
 **Deprioritize / do NOT report as standalone findings** (they are noise that gets programs to disengage):
 - Missing/misconfigured security headers, cookie flags, CSP nits.
 - Self-XSS, clickjacking on non-sensitive pages, verbose error messages.
@@ -49,8 +57,11 @@ Exception: report low-impact issues **only** when they are a necessary link in a
 - If proving impact would require crossing an ethical or scope line, **stop and report what you safely demonstrated** plus the assessed risk — do not cross the line.
 
 ## Skills Usage
-- The `./skills/` directory holds web-focused skills (recon, per-vuln-class testing methodologies, reporting, etc.). They self-describe via their own frontmatter and load on demand.
-- When a task matches a skill in `./skills/`, **load and follow it.** Prefer the workspace's own methodology over improvising.
+- Web-focused skills live in `.claude/skills/<name>/` — auto-discovered and slash-invocable (e.g. `/sql-injection`, `/ssrf`, `/recon`, `/reporting`). They cover recon, every major PortSwigger vuln class, and reporting. See `.claude/skills/README.md` for the catalog.
+- Each skill is a lean `SKILL.md` (when-to-test, detection, exploitation, minimal PoC, anti-noise rules) plus a deeper `reference.md` (full methodology) and, for payload-heavy classes, a `cheatsheet.md` — load `reference.md`/`cheatsheet.md` on demand when you need depth.
+- When a task matches a skill, **load and follow it.** Prefer the workspace's own methodology over improvising. Skills auto-trigger from their `description`; you can also invoke one explicitly by slug.
+- Default flow: **`/recon-mapper`** (full map → happy-flow baselines → impact-scored candidates → skill routing) → the routed vuln-class skill(s) tested highest-impact-first → `/reporting` to write up a validated finding. Use `/recon` only for a quick surface sketch.
+- Vuln-class skills run **downstream** of `/recon-mapper` and consume its artifacts (`_recon/<target>/phase2_surface.json`, `phase3_happy_flows.json`, `phase4_candidates.json`, `phase5_routing.json`). Pass the routed `handoff_context` so each skill inherits the baseline and hypothesis instead of starting cold.
 
 ## Reporting Standards
 Every report must be clear, reproducible, and **lead with business impact**. Include, in order:
@@ -81,9 +92,9 @@ Every report must be clear, reproducible, and **lead with business impact**. Inc
 Run this loop for every engagement; restart from step 1 at each new asset:
 1. **Read scope** (`./scope/`).
 2. **Confirm the target asset is in scope** and the action is permitted.
-3. **Recon** within stated limits.
-4. **Form an explicit impact hypothesis.**
-5. **Test the highest-impact hypotheses first.**
+3. **Map the target** with `/recon-mapper` (full surface + happy-flow baselines + impact-scored candidates) within stated limits. No vuln-class testing before the map exists.
+4. **Form an explicit impact hypothesis** for the top candidates.
+5. **Test the highest-impact candidates first** (per the routing table), pursuing chains.
 6. **Validate with a minimal, safe PoC.**
 7. **Assess true business impact** honestly.
 8. **Report** to standard — or discard if it does not clear the impact and proof bar.
