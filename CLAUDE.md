@@ -56,12 +56,34 @@ Exception: report low-impact issues **only** when they are a necessary link in a
   - No service disruption, no destructive writes, no DoS.
 - If proving impact would require crossing an ethical or scope line, **stop and report what you safely demonstrated** plus the assessed risk — do not cross the line.
 
+## PANEL GATE (non-negotiable when engaging a scoped target)
+**Whenever work uses a target from `./scope/`** — any recon, request, scan, exploitation, or validation against an in-scope asset — **every candidate finding MUST pass the `/panel` gate before it is logged to `./_EXPLOIT/` or written up with `/reporting`.** No finding reaches the report or exploit log un-paneled.
+- **Applies to:** real engagement work that touches a scoped target.
+- **Does NOT apply to:** regular questions, methodology discussion, workspace edits, or anything that doesn't act against an in-scope target. Those are answered normally — no panel.
+- **How:** run the `/panel` workflow (`.claude/workflows/panel.js`) with the actual evidence — the executed minimal PoC and its real output, the in-scope asset, and the impact hypothesis — in `args.evidence`. The panel (Analyst → Skeptic → Arbiter → chair verdict) judges the argument; it cannot run the PoC, so the evidence must already contain real output.
+- **Act on the verdict:** `REPORTABLE` → proceed to `_EXPLOIT/` + `/reporting`. `NEEDS_MORE_PROOF` → gather exactly what it lists, then re-run the gate. `DISCARD` → drop the candidate; do not report it.
+
+## Tooling Environment
+Assume the standard **Kali Linux** pentest toolset is available when choosing commands (e.g. `nmap`, `ffuf`, `gobuster`, `sqlmap`, `nuclei`, `httpx`, `subfinder`, `amass`, `nikto`, `wpscan`, `curl`, `jq`, `dig`). Reach for these first instead of hand-rolling equivalents. Still respect the SCOPE GATE and all rate limits — tooling availability does not widen what you are authorized to touch.
+
 ## Skills Usage
 - Web-focused skills live in `.claude/skills/<name>/` — auto-discovered and slash-invocable (e.g. `/sql-injection`, `/ssrf`, `/recon`, `/reporting`). They cover recon, every major PortSwigger vuln class, and reporting. See `.claude/skills/README.md` for the catalog.
 - Each skill is a lean `SKILL.md` (when-to-test, detection, exploitation, minimal PoC, anti-noise rules) plus a deeper `reference.md` (full methodology) and, for payload-heavy classes, a `cheatsheet.md` — load `reference.md`/`cheatsheet.md` on demand when you need depth.
 - When a task matches a skill, **load and follow it.** Prefer the workspace's own methodology over improvising. Skills auto-trigger from their `description`; you can also invoke one explicitly by slug.
 - Default flow: **`/recon-mapper`** (full map → happy-flow baselines → impact-scored candidates → skill routing) → the routed vuln-class skill(s) tested highest-impact-first → `/reporting` to write up a validated finding. Use `/recon` only for a quick surface sketch.
-- Vuln-class skills run **downstream** of `/recon-mapper` and consume its artifacts (`_recon/<target>/phase2_surface.json`, `phase3_happy_flows.json`, `phase4_candidates.json`, `phase5_routing.json`). Pass the routed `handoff_context` so each skill inherits the baseline and hypothesis instead of starting cold.
+- Vuln-class skills run **downstream** of `/recon-mapper` and consume its artifacts (`_RECON/<target>/phase2_surface.json`, `phase3_happy_flows.json`, `phase4_candidates.json`, `phase5_routing.json`). Pass the routed `handoff_context` so each skill inherits the baseline and hypothesis instead of starting cold.
+
+## Authenticated & Multi-Account Testing
+Broken access control is a top-priority class, and it can only be *proven* by diffing vantage points. Before testing authenticated functionality:
+- Confirm in `./scope/` that authenticated testing is permitted and use **only** credentials the program issued or authorized you to create.
+- Maintain at least **two low-privilege accounts in different tenants (user A / user B)** plus an **unauthenticated** baseline (and an admin account only if issued). Store them in `./scope/credentials.md` (gitignored) — copy the template from `.claude/templates/credentials.example.md`. Redact tokens in every artifact and report.
+- For each access-control candidate, run the diff routine: action as A on A's object (baseline) → as A on **B's** object (horizontal IDOR/BOLA) → **unauthenticated** (missing authn) → privileged action as A (vertical escalation). A finding is only real when the diff shows the boundary actually fails.
+
+## Coverage Tracking (thoroughness, not exhaustiveness)
+Drive testing impact-first from the candidate list — but keep a coverage checklist so categories the ranking didn't surface aren't *silently* skipped.
+- Per target, instantiate `_RECON/<target>/coverage.md` from `.claude/templates/wstg-coverage.md` (the OWASP WSTG 12-category map, aligned to this workspace's skills).
+- Mark each category tested / N-A / deliberately-skipped **with a reason** — never leave a silent gap. Skipping for impact reasons is fine; *unrecorded* skipping is not.
+- The checklist is a safety net, not a mandate to test everything: depth on the high-impact 20%, a recorded decision on the rest.
 
 ## Reporting Standards
 Every report must be clear, reproducible, and **lead with business impact**. Include, in order:
@@ -97,6 +119,7 @@ Run this loop for every engagement; restart from step 1 at each new asset:
 5. **Test the highest-impact candidates first** (per the routing table), pursuing chains.
 6. **Validate with a minimal, safe PoC.**
 7. **Assess true business impact** honestly.
-8. **Report** to standard — or discard if it does not clear the impact and proof bar.
+8. **Run the PANEL GATE** (`/panel`) on the candidate with its real evidence — mandatory for any scoped-target finding. Only a `REPORTABLE` verdict proceeds; `NEEDS_MORE_PROOF` loops back to step 6; `DISCARD` ends it.
+9. **Report** to standard — or discard if it does not clear the impact and proof bar.
 
-Scope is re-validated at every new asset and every change of technique. No exceptions.
+Scope is re-validated at every new asset and every change of technique. The panel gate is mandatory for every scoped-target finding. No exceptions.

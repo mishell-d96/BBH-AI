@@ -8,7 +8,7 @@ Asset inventory -> Attack-surface map -> Verified happy flows (baseline req/res)
 summary. Idempotent: safe to re-run. Missing artifacts are noted, not fatal.
 
 Usage:
-  build_report.py --outdir _recon/<target>
+  build_report.py --outdir _RECON/<target>
 """
 import argparse
 import json

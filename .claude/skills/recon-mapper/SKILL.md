@@ -37,10 +37,10 @@ machine-readable artifacts the other skills read directly.
 6. **Conservative & re-checked.** Low rates, no destructive actions, scope re-validated at every new host.
 
 ## Workspace layout (artifacts)
-All output goes under `./_recon/<target-slug>/` (override with `OUTDIR`). `${CLAUDE_SKILL_DIR}` is this
+All output goes under `./_RECON/<target-slug>/` (override with `OUTDIR`). `${CLAUDE_SKILL_DIR}` is this
 skill's directory; helper scripts live in `${CLAUDE_SKILL_DIR}/scripts/`.
 ```
-_recon/<target-slug>/
+_RECON/<target-slug>/
   manifest.json          # run state: phases done, tools run/skipped, timestamps (resumable)
   scope.json             # resolved in/out-of-scope rules + per-host verdicts
   skills_index.json      # downstream skills discovered at runtime
@@ -49,6 +49,7 @@ _recon/<target-slug>/
   phase3_happy_flows.json# verified intended flows + baseline req/res
   phase4_candidates.json # IMPACT-SCORED vulnerability candidates (ranked)
   phase5_routing.json    # candidate -> skill hand-off + chains + gaps
+  coverage.md            # WSTG 12-category coverage tracker (thoroughness safety net)
   raw/                   # raw tool output + tool run/skip log
   report.md              # consolidated human-readable report
 ```
@@ -62,7 +63,7 @@ _recon/<target-slug>/
 2. Initialise and resolve scope against the program scope files plus any explicit rules:
    ```bash
    TARGET="example.com"                       # operator-supplied, in-scope
-   export OUTDIR="./_recon/${TARGET}"
+   export OUTDIR="./_RECON/${TARGET}"
    bash    ${CLAUDE_SKILL_DIR}/scripts/init_workspace.sh "$TARGET"
    python3 ${CLAUDE_SKILL_DIR}/scripts/scope_guard.py \
        --target "$TARGET" --scope-dir ../../../scope \
@@ -179,6 +180,11 @@ capability gap to the operator; do not fabricate a skill.**
 Then **test highest-priority-first**, invoking each chosen skill with its `handoff_context` so it
 inherits the baseline and hypothesis instead of starting cold. Pursue `chain_next` before filing
 isolated low-severity bugs.
+
+**Seed the coverage tracker:** on first run, copy `../../../.claude/templates/wstg-coverage.md` to
+`$OUTDIR/coverage.md` (replace `<target>`). As each downstream skill runs, mark its WSTG category
+tested / N-A / skipped-with-reason so no category is *silently* dropped (per `CLAUDE.md` → Coverage
+Tracking). Impact-first still governs *order*; the tracker just guarantees nothing falls off unnoticed.
 
 **Close the loop:** every candidate a downstream skill *proves* must be written to `../../../_EXPLOIT/`
 (one file per finding, minimal `curl` repro — per `CLAUDE.md` Exploit Logging), then handed to

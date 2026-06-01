@@ -1,3 +1,4 @@
-./.idea/*
-./scope/*
-./_EXPLOIT/*
+.idea/
+scope/*
+_EXPLOIT/*
+!*/README.md

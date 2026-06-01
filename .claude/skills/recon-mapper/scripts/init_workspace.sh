@@ -6,7 +6,7 @@ HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$HERE/_lib.sh"
 
 TARGET="${1:?usage: init_workspace.sh <target>}"
-: "${OUTDIR:=./_recon/${TARGET}}"
+: "${OUTDIR:=./_RECON/${TARGET}}"
 export OUTDIR
 mkdir -p "$OUTDIR/raw"
 
