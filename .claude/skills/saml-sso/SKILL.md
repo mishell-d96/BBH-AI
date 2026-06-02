@@ -1,14 +1,6 @@
 ---
 name: saml-sso
-description: >-
-  Find and prove SAML/SSO authentication flaws leading to authentication bypass
-  and full account takeover. Use when you see SAMLResponse/SAMLRequest params,
-  /saml/acs, /saml/sso, /sso or assertion-consumer-service endpoints, base64
-  XML assertions, Identity Provider login (Okta / ADFS / Auth0 / OneLogin /
-  Keycloak / PingFederate), <saml:Assertion>, <samlp:Response>, <ds:Signature>,
-  enterprise SSO, or "Login with SSO". Covers XML Signature Wrapping (XSW),
-  signature stripping/exclusion, key/cert confusion, NameID comment injection,
-  XXE in assertion parsing, and recipient/audience/replay validation flaws.
+description: "SAML/SSO flaws -> auth bypass and full ATO. Use for SAMLResponse/SAMLRequest, /saml/acs, /saml/sso, base64 XML assertions, IdP login (Okta/ADFS/Auth0/Keycloak), <saml:Assertion>, <ds:Signature>. Covers XML Signature Wrapping (XSW), signature stripping, key confusion, NameID injection, XXE."
 ---
 
 # saml-sso — SAML / SSO Assertion Attacks

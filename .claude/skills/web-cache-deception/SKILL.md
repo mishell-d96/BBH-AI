@@ -1,6 +1,6 @@
 ---
 name: web-cache-deception
-description: Tricks a web cache into storing a dynamic, authenticated response so it can be retrieved unauthenticated — leaking the victim's PII, tokens, or account data. Use when a CDN/cache (Cloudflare, Akamai, Fastly, Varnish, CloudFront) caches static extensions (.css/.js/.png/.ico) AND the origin serves dynamic authenticated content. Strong signals: appending /foo.css or an extra path segment to a profile/account/settings endpoint still returns the dynamic page; path-mapping confusion (REST vs traditional); delimiter discrepancies (; . %00); delimiter-decoding (%23, %2f, %2e); static-directory rules (/static /assets); filename rules (robots.txt, index.html, favicon.ico); cache rules that ignore Cache-Control. X-Cache: hit / Age header / Cache-Control: public on a private page.
+description: "Web cache deception — trick a cache into storing a dynamic authenticated response, retrieved unauthenticated to leak PII/tokens. Use when a CDN caches static extensions (.css/.js/.png) AND origin serves dynamic auth content; appending /foo.css or an extra path segment to /account still returns the page; delimiter/path-mapping confusion."
 ---
 
 # Web Cache Deception (WCD)

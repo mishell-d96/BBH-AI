@@ -1,6 +1,6 @@
 ---
 name: reporting
-description: Drafts a clear, reproducible, impact-led vulnerability report from a validated finding. Use when writing up a finding, preparing a submission, drafting repro steps, assessing severity or CVSS, or before submitting to a bug bounty program. Covers report structure, impact statements, severity reasoning, reproduction steps, minimal PoC, duplicate checking, and a fill-in template. Keywords: bug bounty report, write-up, submission, repro steps, PoC, severity, CVSS, impact, triage, remediation.
+description: "Draft a clear, reproducible, impact-led vulnerability report from a validated finding. Use when writing up a finding, drafting repro steps, assessing severity/CVSS, duplicate-checking, or before submitting. Covers structure, impact statement, minimal PoC, remediation, fill-in template."
 ---
 
 # Reporting — validated finding → high-signal report

@@ -1,6 +1,6 @@
 ---
 name: xxe-injection
-description: Detect and prove XML External Entity (XXE) injection — server-side file read, SSRF (including cloud metadata), and blind/OOB exfiltration via XML parsing of external entities. Use when a request has an XML body or SOAP, Content-Type is application/xml or text/xml, you see a DTD/DOCTYPE/<!ENTITY>, there are SVG/DOCX/XLSX/PDF/file uploads or SAML, or you suspect SSRF via XML or blind XXE that needs OAST.
+description: "XML External Entity (XXE) injection -> server-side file read, SSRF (incl. cloud metadata), blind/OOB exfil. Use when a request has an XML/SOAP body, Content-Type application/xml, a DOCTYPE/<!ENTITY>, SVG/DOCX/XLSX/PDF uploads, or SAML."
 ---
 
 > **Prereq — map first:** Don't test this cold. A target attack-surface map and the relevant happy-flow baseline must exist first — run `/recon-mapper` if not. Test this class against the impact-scored candidate list (highest priority first), reuse the routed `handoff_context`, and pursue chains to real business impact over isolated low-severity bugs.

@@ -1,18 +1,6 @@
 ---
 name: dom-based
-description: >-
-  Finds and proves DOM-based client-side vulnerabilities by tracing taint from
-  attacker-controllable sources to dangerous JS sinks. Use when the target has
-  rich client-side JS / SPAs and URL fragments influence the DOM; when you see
-  client-side JS sinks (innerHTML, outerHTML, eval, Function, setTimeout,
-  setInterval, document.write, document.writeln, location/location.href,
-  element.src, postMessage, setRequestHeader, document.cookie, JSON.parse,
-  WebSocket); when sources like location.hash, location.search, document.URL,
-  document.referrer, window.name, document.cookie, localStorage/sessionStorage
-  or postMessage flow into those sinks. Covers DOM XSS, DOM open-redirect,
-  DOM cookie manipulation, JavaScript/eval injection, web-message (postMessage)
-  manipulation, DOM clobbering, and taint-flow analysis. Keywords: DOM XSS,
-  client-side, sink, source, taint, hash payload, DOM Invader, Trusted Types.
+description: "DOM-based client-side vulns — trace taint from sources (location.hash/search, document.URL/referrer, postMessage, storage) to sinks (innerHTML, eval, document.write, location, setRequestHeader). Covers DOM XSS, DOM open-redirect, cookie manipulation, web-message, DOM clobbering."
 ---
 
 # DOM-based vulnerabilities

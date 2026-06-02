@@ -1,14 +1,6 @@
 ---
 name: websockets
-description: >-
-  Tests WebSocket-based features for cross-site WebSocket hijacking (CSWSH),
-  missing handshake Origin/CSRF validation, and input-based injection that
-  reaches the backend over WS. Use when you see ws:// or wss:// connections, a
-  WebSocket handshake (HTTP 101 Upgrade, Sec-WebSocket-Key), chat / live feed /
-  notifications / real-time / streaming features, cookie-only handshake auth
-  with no CSRF token, missing Origin checks on the handshake, or user-supplied
-  message content reaching a server-side sink (SQLi/XSS/XXE over WebSockets) or
-  rendered in other users' browsers (reflected/stored XSS via WS).
+description: "WebSocket attacks — cross-site WebSocket hijacking (CSWSH), missing handshake Origin/CSRF validation, and input-based injection reaching the backend. Use for ws://wss:// connections, 101 Upgrade handshakes, chat/live/real-time features, cookie-only handshake auth, or message content hitting a sink."
 ---
 
 # WebSocket security

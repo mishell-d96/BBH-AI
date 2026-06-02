@@ -1,17 +1,6 @@
 ---
 name: essential-skills
-description: >-
-  Cross-cutting techniques for obfuscating payloads to bypass input filters/WAFs and for using a
-  scanner to support (not replace) manual testing. Use when: a payload is being blocked, filtered,
-  stripped, or sanitized; you suspect a WAF/firewall is rejecting an attack; you need encoding or
-  obfuscation (URL encoding, double-URL encoding, HTML entities, named entities, decimal/hex
-  numeric refs, unicode escapes \u, ES6 \u{}, hex \x escapes, octal escapes, SQL CHAR(), 0x hex
-  literals, leading-zero tricks, mixing/layering encodings); you want to defeat a keyword or
-  character blocklist; you want to reason about which decoding the target performs and in what
-  order; you are supplementing manual testing with a scanner; you need custom insertion points,
-  scanning a single request/parameter, or scanning non-standard data structures. Keywords: WAF
-  bypass, filter bypass, blocklist evasion, encoding, obfuscation, sanitization bypass, scanner-
-  assisted testing, manual validation.
+description: "Cross-cutting: obfuscate payloads to bypass input filters/WAFs (URL/double-URL/HTML-entity/unicode/hex/octal encoding, SQL CHAR(), layering) and use a scanner to support manual testing. Use when a payload is blocked/filtered/sanitized or a WAF rejects an attack."
 ---
 
 # Essential Skills — Encoding/Obfuscation & Scanner-Assisted Testing

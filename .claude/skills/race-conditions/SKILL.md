@@ -1,14 +1,6 @@
 ---
 name: race-conditions
-description: >-
-  Find and prove race-condition vulnerabilities — concurrent requests that
-  collide in a TOCTOU window to overrun a business limit or skip a state check.
-  Use when an action is supposed to happen "once only" or is otherwise limited:
-  coupon / gift-card / voucher / discount-code redemption, withdrawal / transfer
-  / balance spend, rate-limit or OTP / 2FA attempt counters, multi-use of a
-  single-use token (password-reset, invite, magic link), limit-overrun (votes,
-  applications, seats, stock), TOCTOU, hidden multi-step sub-states, single-
-  packet attack, last-byte synchronization, double-spend.
+description: "Race conditions — concurrent requests colliding in a TOCTOU window to overrun a limit or skip a state check. Use for 'once only' actions: coupon/gift-card redemption, withdrawal/transfer, OTP/2FA attempt counters, single-use tokens, limit-overrun, double-spend. Single-packet attack."
 ---
 
 # Race Conditions

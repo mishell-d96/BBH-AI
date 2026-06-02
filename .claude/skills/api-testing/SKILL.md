@@ -1,6 +1,6 @@
 ---
 name: api-testing
-description: Tests REST/JSON/web APIs for authorization bypass, mass assignment, hidden endpoints/parameters, HTTP method tampering, content-type confusion, and server-side parameter pollution (SSPP). Use when testing REST or JSON APIs, GraphQL-adjacent backends, mobile/SPA backends; when Swagger/OpenAPI docs are present; when hunting hidden API endpoints or hidden parameters; for mass assignment to privileged fields (isAdmin/role); HTTP method tampering (GET/POST/PUT/PATCH/DELETE/OPTIONS); content-type changes (JSON<->XML); server-side parameter pollution in query strings, REST paths, or structured data; or pivoting API findings into IDOR/SQLi/broken auth.
+description: "REST/JSON API testing — authz bypass, mass assignment (isAdmin/role), hidden endpoints/params, HTTP method tampering, content-type confusion, server-side parameter pollution (SSPP). Use for REST/JSON/SPA/mobile backends, Swagger/OpenAPI, or pivoting API findings into IDOR/SQLi/broken auth."
 ---
 
 # API Testing

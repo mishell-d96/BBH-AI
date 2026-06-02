@@ -1,12 +1,6 @@
 ---
 name: xss
-description: >-
-  Detect, prove, and report cross-site scripting (XSS) on authorized targets with minimal safe PoC and impact-first triage.
-  Use when you see reflected input echoed into an HTML/attribute/JavaScript/URL context, stored input on comments / profiles /
-  display names / messages, or client-side DOM sinks (innerHTML, outerHTML, document.write, insertAdjacentHTML, eval, setTimeout,
-  jQuery .html()) fed from sources like location, document.URL, document.referrer, postMessage. Covers reflected XSS, stored
-  (persistent) XSS, DOM-based XSS, context breakouts, event-handler payloads, filter/WAF bypass, CSP-aware exploitation, polyglots,
-  alert() vs real impact (session/CSRF-token theft, account takeover), and anti-self-XSS noise filtering.
+description: "Cross-site scripting — reflected, stored, and DOM XSS with context breakouts, CSP-aware. Use when user input is reflected or stored into HTML/attribute/JS/URL contexts and you can prove script execution; includes filter/sanitizer breakouts and a payload cheatsheet."
 ---
 
 # XSS (Cross-Site Scripting)

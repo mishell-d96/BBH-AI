@@ -1,6 +1,6 @@
 ---
 name: deserialization
-description: Tests for insecure deserialization — when attacker-controllable serialized objects are deserialized by the server, enabling object injection, privilege escalation, and gadget-chain RCE. Use when you see a serialized blob accepted from the client: Java (base64 rO0AB / hex AC ED 00 05), PHP (O:8:"...", a:, s:), .NET (ViewState __VIEWSTATE, BinaryFormatter, TypeNameHandling), Python pickle, Ruby/Marshal; cookies/params/headers/hidden fields holding object state; magic methods (__wakeup/__destruct/readObject), gadget chains, ysoserial, PHPGGC, PHAR deserialization, BinaryFormatter/Json.NET. Keywords: insecure deserialization, object injection, gadget chain, ysoserial, phpggc, viewstate, pickle, marshal, phar.
+description: "Insecure deserialization -> object injection, priv-esc, gadget-chain RCE. Use when a serialized blob comes from the client: Java (rO0AB / AC ED), PHP (O:8:), .NET (__VIEWSTATE, BinaryFormatter, TypeNameHandling), Python pickle, Ruby Marshal. Tools: ysoserial, phpggc, PHAR."
 ---
 
 # Insecure Deserialization

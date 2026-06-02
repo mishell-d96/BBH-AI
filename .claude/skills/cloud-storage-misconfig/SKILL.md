@@ -1,13 +1,6 @@
 ---
 name: cloud-storage-misconfig
-description: >-
-  Find and prove misconfigured cloud storage — public or world-writable S3,
-  GCS, and Azure Blob buckets, plus dangling/unclaimed bucket references.
-  Use when you see s3.amazonaws.com / storage.googleapis.com /
-  blob.core.windows.net URLs, bucket names embedded in JS or HTML, asset/CDN
-  hosts, AccessDenied / NoSuchBucket / 404 responses, or upload features backed
-  by object storage. Covers anonymous list/read/write, ACL probing, and bucket
-  takeover.
+description: "Misconfigured cloud storage — public/world-writable S3, GCS, Azure Blob, and dangling-bucket takeover. Use for s3.amazonaws.com / storage.googleapis.com / blob.core.windows.net URLs, bucket names in JS/HTML, AccessDenied/NoSuchBucket responses, or storage-backed uploads."
 ---
 
 # Cloud Storage Misconfiguration

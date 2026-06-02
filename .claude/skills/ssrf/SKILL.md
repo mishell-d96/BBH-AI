@@ -1,6 +1,6 @@
 ---
 name: ssrf
-description: Tests for Server-Side Request Forgery — coercing the server to make attacker-controlled requests to internal/cloud targets. Use when a param takes a url/uri/callback/webhook/redirect/dest/image-fetch/proxy/import-from-URL value, or a feature renders link previews, fetches remote images/files, generates PDFs/screenshots, or calls integrations. Strong signals: cloud metadata (169.254.169.254), internal hostnames/RFC1918 IPs, localhost/admin access, blind SSRF confirmed via OAST/collaborator/DNS callback.
+description: "Server-Side Request Forgery — coerce the server to request internal/cloud targets. Use when a param takes a url/uri/callback/webhook/redirect/image-fetch/proxy value, or a feature does link previews, remote fetches, PDF/screenshot generation. Signals: 169.254.169.254 metadata, RFC1918, localhost, blind via OAST."
 ---
 
 # SSRF (Server-Side Request Forgery)

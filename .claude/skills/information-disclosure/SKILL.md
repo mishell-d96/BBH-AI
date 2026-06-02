@@ -1,6 +1,6 @@
 ---
 name: information-disclosure
-description: Finds and proves information disclosure where a site unintentionally leaks sensitive data — secrets, credentials, source code, PII, internal infrastructure. Use when you see verbose errors or stack traces, debug pages/endpoints, robots.txt or sitemap.xml hints, backup or source files (.bak, .old, ~, .swp, .zip, .php.txt), exposed API keys / credentials / tokens, .git or .svn directories, source maps (.js.map), version banners / version disclosure, directory listing, or developer comments in markup. Keywords: info leak, sensitive data exposure, secret leak, exposed config, source code disclosure, error message, debug, dotgit, dotsvn, backup file, directory indexing.
+description: "Unintentional leaks of sensitive data — secrets, source, PII, internal infra. Use for verbose errors/stack traces, debug pages, robots.txt hints, backup/source files (.bak/.old/.swp/.zip), exposed .git/.svn, source maps (.js.map), version banners, directory listing. Strict anti-noise."
 ---
 
 # Information Disclosure

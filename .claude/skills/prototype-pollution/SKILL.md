@@ -1,6 +1,6 @@
 ---
 name: prototype-pollution
-description: Find and prove JavaScript prototype pollution, then chain it to DOM XSS (client-side) or RCE/privilege escalation (server-side). Use when you see __proto__, constructor, or prototype keys accepted in JSON bodies or query/hash params; recursive object merge, deep extend/clone, Object.assign, lodash merge/defaultsDeep, jQuery $.extend, or config-merge patterns; any JS/Node app that merges user-controlled objects; client-side DOM XSS gadgets (script src/transport_url, innerHTML); server-side Express/Node gadgets producing RCE, status-code/JSON-spacing/charset shifts, or child_process arg injection. Keywords: prototype pollution, __proto__, constructor.prototype, gadget, recursive merge, NODE_OPTIONS, execArgv, DOM Invader.
+description: "JavaScript prototype pollution -> DOM XSS (client) or RCE/priv-esc (server). Use for __proto__/constructor/prototype keys in JSON/query/hash, recursive merge / Object.assign / lodash merge / $.extend, config-merge patterns, Node/Express gadgets (NODE_OPTIONS, execArgv)."
 ---
 
 # Prototype Pollution

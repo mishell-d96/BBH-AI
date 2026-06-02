@@ -1,13 +1,6 @@
 ---
 name: oauth
-description: >-
-  Find and prove OAuth 2.0 / OpenID Connect authentication flaws that lead to account takeover.
-  Covers redirect_uri validation bypass, code/token leakage, missing/weak state (CSRF account
-  linking), implicit-grant token forgery, flawed scope validation, and unverified-email ATO.
-  Use when a target has "Login with Google/Facebook/Apple", any SSO or social login, or you see
-  redirect_uri, response_type, state, code, client_id, client_secret, scope, id_token, nonce,
-  openid, /authorize, /token, /userinfo, /.well-known/openid-configuration, account linking,
-  authorization code grant, or implicit grant in a flow.
+description: "OAuth 2.0 / OIDC flaws -> account takeover — redirect_uri bypass, code/token leakage, missing/weak state (CSRF account linking), implicit-grant forgery, scope flaws, unverified-email ATO. Use for 'Login with Google/Facebook', SSO, redirect_uri/state/code/id_token, /authorize, /token, /userinfo."
 ---
 
 # OAuth 2.0 / OpenID Connect

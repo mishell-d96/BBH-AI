@@ -1,6 +1,6 @@
 ---
 name: clickjacking
-description: Frame a target page and overlay invisible UI so a victim's clicks trigger a sensitive state-changing action on the real site. Use when a sensitive, framable action is reachable purely by clicks AND the response lacks X-Frame-Options / CSP frame-ancestors. Signals: missing X-Frame-Options, missing CSP frame-ancestors, framable sensitive actions (delete account, change email, transfer, confirm), iframe overlay / UI redress, prefilled-form clickjacking (GET-prefilled forms), multistep clickjacking, frame buster bypass, combining clickjacking with DOM XSS. NOT for missing-XFO alone with no impactful action.
+description: "Clickjacking / UI redress — frame a target and overlay invisible UI so a victim's clicks trigger a sensitive action. Use when a framable sensitive action exists AND X-Frame-Options / CSP frame-ancestors is missing. Not for missing-XFO alone with no impactful action."
 ---
 
 # Clickjacking

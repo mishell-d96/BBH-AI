@@ -1,6 +1,6 @@
 ---
 name: recon
-description: Quick, lightweight attack-surface sketch — fast subdomain/content/parameter discovery and tech fingerprinting for a single target, without baselining or skill-routing. Use when the operator explicitly wants a SHALLOW, fast look ("quick recon", "just enumerate subdomains", "what's the tech stack", "any obvious endpoints"). For a full engagement — mapping the whole app, verifying happy flows, impact-scoring, and routing findings to vuln skills — use `/recon-mapper` instead (that is the map-first entry point the workflow expects). Keywords: quick recon, subdomain enumeration, content discovery, parameter discovery, fingerprinting, spidering, sitemap, crawl, asset discovery.
+description: "Quick, shallow attack-surface sketch — fast subdomain/content/parameter discovery and tech fingerprinting, no baselining or routing. Use only when the operator wants a fast look ('quick recon', 'enumerate subdomains', 'tech stack'). For a full engagement use recon-mapper."
 ---
 
 # Recon — quick attack-surface sketch

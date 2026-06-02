@@ -1,16 +1,6 @@
 ---
 name: web-llm-attacks
-description: >-
-  Test LLM-integrated web apps for prompt injection, insecure output handling,
-  and excessive agency that produce concrete technical impact. Use when the
-  target has an LLM chatbot/assistant/copilot; the LLM can call APIs, functions,
-  tools, or plugins; the LLM reads attacker-controlled user data (indirect
-  prompt injection via emails, reviews, profiles, web pages); LLM output is
-  rendered without sanitization (insecure output handling -> reflected/stored
-  XSS); or the LLM has access to backend APIs/data reachable via chaining
-  (SQLi, path traversal, SSRF). Keywords: LLM attacks, prompt injection, indirect
-  prompt injection, jailbreak, excessive agency, insecure output handling,
-  function calling, AI assistant, chatbot, RAG, tool use.
+description: "Attacks on LLM-integrated web apps — prompt injection, insecure output handling (-> XSS), excessive agency. Use when the target has an LLM chatbot/assistant/copilot, the LLM calls tools/APIs, reads attacker-controlled data (indirect injection via emails/reviews/profiles), or renders its output unsanitized."
 ---
 
 # web-llm-attacks

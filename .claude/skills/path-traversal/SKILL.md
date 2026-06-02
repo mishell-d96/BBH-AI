@@ -1,6 +1,6 @@
 ---
 name: path-traversal
-description: Tests web parameters for path traversal / directory traversal (LFI) to read arbitrary files on the server. Use when a parameter looks like a filename or path (file=, path=, doc=, document=, template=, page=, image=, download), when download/preview endpoints or template/image loaders take a name, when ../ sequences seem to influence a path, or when probing for /etc/passwd, win.ini, source/config/credential disclosure, or local file inclusion.
+description: "Path traversal / directory traversal (LFI) -> arbitrary file read. Use when a param looks like a filename/path (file/path/doc/template/page/image/download), ../ influences a path, or probing /etc/passwd, win.ini, source/config/credential disclosure."
 ---
 
 # Path Traversal (Directory Traversal / LFI)

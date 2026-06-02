@@ -1,11 +1,6 @@
 ---
 name: secrets-exposure
-description: >-
-  Find and validate exposed secrets — API keys, tokens, cloud creds, private keys — leaked in
-  client-side JS, source maps, exposed .git/.svn, config/backup files, and public repos/commit
-  history. "Use when…" signals: bundled main.js / webpack chunks, REACT_APP_/VUE_APP_ env vars in
-  JS, .map files, /.git/ exposed, hardcoded AWS/GCP keys, Authorization/Bearer/api_key strings,
-  GitHub org leaks. Keyword-rich.
+description: "Find & validate exposed secrets — API keys, tokens, cloud creds, private keys — in client JS, source maps, exposed .git/.svn, config/backup files, public repos. Use for bundled JS/webpack chunks, REACT_APP_/VUE_APP_ vars, .map files, hardcoded AWS/GCP keys, Authorization/Bearer/api_key strings."
 ---
 
 # Secrets Exposure

@@ -1,6 +1,6 @@
 ---
 name: file-upload
-description: Find and prove file upload vulnerabilities — unrestricted uploads leading to web shell RCE, validation bypasses, and stored XSS via uploaded files. Use when a target has any upload feature (avatar/profile picture, document/attachment upload, image upload, file import), accepts multipart/form-data, relies on Content-Type validation or extension filters, or where uploaded files (SVG, HTML, PHP) may be served or executed. Keywords: file upload, web shell, RCE, .htaccess, extension blacklist, magic bytes, polyglot, SVG XSS, path traversal filename.
+description: "File upload flaws -> web-shell RCE, validation bypass, stored XSS via uploaded files. Use for any upload feature (avatar, document, image, import), multipart/form-data, Content-Type/extension filters, or SVG/HTML/PHP that may be served. Keywords: web shell, .htaccess, magic bytes, polyglot."
 ---
 
 # File Upload Vulnerabilities

@@ -1,6 +1,6 @@
 ---
 name: cors
-description: Detects and proves exploitable CORS (Cross-Origin Resource Sharing) misconfigurations that enable cross-origin theft of sensitive authenticated data. Use when an API or endpoint returns sensitive data AND emits CORS headers; specifically when Access-Control-Allow-Origin reflects the attacker-supplied Origin, when ACAO is paired with Access-Control-Allow-Credentials: true, when a null origin is accepted, when sensitive data is served cross-origin via an API, or when a weak origin whitelist regex (prefix/suffix/substring match) can be bypassed. Keywords: CORS, ACAO, ACAC, Access-Control-Allow-Origin, Access-Control-Allow-Credentials, Origin reflection, null origin, cross-origin data theft, origin whitelist bypass, withCredentials.
+description: "Exploitable CORS misconfig -> cross-origin theft of authenticated data. Use when an endpoint returns sensitive data with Access-Control-Allow-Origin reflecting Origin, ACAO + Access-Control-Allow-Credentials:true, null origin accepted, or a weak origin-whitelist regex."
 ---
 
 # CORS Misconfiguration

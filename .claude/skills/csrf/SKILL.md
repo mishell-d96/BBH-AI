@@ -1,6 +1,6 @@
 ---
 name: csrf
-description: Find and prove Cross-Site Request Forgery (CSRF) — forcing an authenticated victim's browser to issue unintended state-changing requests. Use when testing state-changing requests (POST/PUT/DELETE or sensitive GET), missing or weak anti-CSRF tokens, SameSite cookie settings (Strict/Lax/None), email/password/2FA change, fund transfer, account settings, GET-based actions, or when a CSRF token is not tied to the session, validated only by request method, validated only when present, or duplicated in a cookie (double-submit). Keywords: csrf, cross-site request forgery, samesite, csrf token, anti-csrf, referer check, double-submit cookie, account takeover via csrf, state-changing request.
+description: "Cross-Site Request Forgery — force an authenticated victim's browser into state-changing requests. Use for POST/PUT/DELETE or sensitive GET actions with missing/weak anti-CSRF tokens, SameSite gaps, token not tied to session, method-only checks, or double-submit cookie."
 ---
 
 # CSRF (Cross-Site Request Forgery)

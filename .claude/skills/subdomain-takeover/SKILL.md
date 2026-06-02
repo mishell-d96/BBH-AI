@@ -1,13 +1,6 @@
 ---
 name: subdomain-takeover
-description: >-
-  Detect and prove subdomain takeovers from dangling DNS records. Use when a CNAME
-  points to an unclaimed external service (GitHub Pages, AWS S3, Heroku, Azure,
-  Fastly, Shopify, Zendesk, Netlify, Pantheon, Surge, Readme, etc.), when a subdomain
-  returns NXDOMAIN or a service 404 like "no such app"/"specified bucket does not
-  exist"/"there isn't a GitHub Pages site here", when recon surfaces a dangling CNAME
-  or an abandoned/unused subdomain. Keywords: subdomain takeover, dangling DNS,
-  CNAME takeover, unclaimed bucket, claim service, fingerprint, can-i-take-over-xyz.
+description: "Subdomain takeover from dangling DNS. Use when a CNAME points to an unclaimed service (GitHub Pages, S3, Heroku, Azure, Fastly, Shopify, Zendesk, Netlify), or a subdomain returns NXDOMAIN or a service 404 ('no such app', 'no such bucket', 'there isn't a GitHub Pages site here'). Keyword: can-i-take-over-xyz."
 ---
 
 # Subdomain Takeover

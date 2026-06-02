@@ -1,17 +1,6 @@
 ---
 name: business-logic
-description: >-
-  Find and prove business logic / application logic flaws — design and
-  implementation gaps that let an attacker elicit unintended behavior by abusing
-  legitimate functionality. Use when testing multi-step workflows (checkout,
-  registration, password reset, KYC), price/quantity/discount manipulation,
-  negative numbers, integer/decimal/currency rounding, parameter tampering or
-  parameter removal, excessive trust in client-side controls (hidden fields, JS
-  validation, disabled buttons), coupon/voucher/gift-card/refund/store-credit
-  abuse, role and trust assumptions, sequence/state-machine skipping, forced
-  browsing, 2FA bypass, encryption oracles, and email-parser discrepancies for
-  access control. Keywords: logic flaw, IDOR-adjacent abuse, race-adjacent
-  ordering, replay, tampering, flawed assumption, domain-specific abuse.
+description: "Business/application logic flaws — abusing legitimate functionality. Use for multi-step workflows (checkout, KYC, reset), price/quantity/discount tampering, negative numbers, rounding, parameter removal, excessive client-side trust, coupon/refund/gift-card abuse, state-machine skipping, replay."
 ---
 
 # Business logic vulnerabilities

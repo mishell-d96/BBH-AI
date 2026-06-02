@@ -1,7 +1,6 @@
 ---
 name: open-redirect
-description: >-
-  Detect, prove, and escalate open redirects — both server-side (302 Location reflection) and DOM-based (location/location.href/assign/replace sinks). Use when a request takes a URL-shaped param (redirect, redirect_url, redirect_uri, return, returnUrl, returnTo, next, url, dest, destination, continue, callback, goto, out, link, target, image_url), when a response reflects user input into the Location header, on post-login/logout redirects, SSO/OAuth flows, link-tracking / "out" / interstitial endpoints, or when JS navigates using location.hash / search / referrer. Keywords: open redirect, unvalidated redirect, URL redirection, location sink, redirect_uri, returnUrl, next param, phishing redirect, OAuth token theft, SSRF whitelist bypass.
+description: "Open redirects (server-side 302 Location reflection & DOM location sinks) — low alone, a force-multiplier (-> OAuth token theft, SSRF whitelist bypass, CSP). Use for URL-shaped params (redirect/redirect_uri/return/returnUrl/next/url/dest/callback/goto), post-login/logout/SSO redirects."
 ---
 
 # Open Redirect

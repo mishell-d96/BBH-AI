@@ -1,6 +1,6 @@
 ---
 name: web-cache-poisoning
-description: Detect and prove web cache poisoning — make a CDN/cache store a harmful response that gets served to other users. Use when a CDN or cache sits in front of the app (Varnish, Cloudflare, Akamai, Fastly, nginx), responses carry X-Cache hit/miss / Age / Cache-Control / Vary, or you suspect unkeyed inputs (X-Forwarded-Host, X-Forwarded-Scheme, X-Forwarded-Proto, X-Host, X-Forwarded-Server, cookies, unkeyed query params) reflected into a cacheable response. Covers cache keys, keyed vs unkeyed inputs, cache busters, X-Cache observation, unkeyed-header XSS/redirect, unsafe imports, DOM gadgets, cache key injection/normalization, cache param cloaking, fat GET. Always test with a cache buster so only YOUR cache entry is poisoned, never real users.
+description: "Web cache poisoning — make a CDN/cache store a harmful response served to other users. Use when a cache fronts the app (Varnish/Cloudflare/Akamai/Fastly/nginx), responses carry X-Cache/Age/Vary, and unkeyed inputs (X-Forwarded-Host/Scheme/Proto, cookies, unkeyed params) reflect into cacheable output. Always use a cache buster."
 ---
 
 # Web Cache Poisoning

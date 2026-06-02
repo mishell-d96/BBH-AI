@@ -1,6 +1,6 @@
 ---
 name: host-header
-description: Tests HTTP Host header attacks — finds and proves account takeover via password reset poisoning, routing-based SSRF, web cache poisoning, and Host-based auth bypass. Use when the app trusts the Host header: password reset links, links in emails, virtual hosts, cache keys, reverse-proxy routing, or absolute URLs. Signals — Host header manipulation, X-Forwarded-Host, X-Host, Forwarded, duplicate Host header, absolute URL in request line, password reset link poisoning, virtual host brute-force, internal vhost, routing-based SSRF, connection-state attack, malformed request line.
+description: "HTTP Host header attacks -> ATO via password-reset poisoning, routing-based SSRF, web cache poisoning, Host-based auth bypass. Use when the app trusts Host: reset/email links, vhosts, cache keys, proxy routing, absolute URLs. Signals: X-Forwarded-Host, duplicate Host, absolute request line."
 ---
 
 # Host Header Attacks

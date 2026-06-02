@@ -1,18 +1,6 @@
 ---
 name: recon-mapper
-description: >-
-  Full end-to-end engagement pipeline for an authorized web target: map the
-  ENTIRE attack surface, verify the app's intended ("happy") flows to capture
-  baselines, score the surface by business IMPACT, then route each prioritized
-  candidate to the matching downstream skill. Use when the operator wants to
-  hunt a whole target and asks to "map this app", "fully recon <domain>", "build
-  a site map and tell me where to focus", "enumerate the attack surface", or
-  "start an engagement / assessment" against a specific in-scope domain, URL, or
-  IP range. This is the heavyweight orchestrator that produces shared JSON
-  artifacts (attack-surface map, happy-flow baselines, impact-scored candidate
-  list, skill-routing table) the vuln-class skills consume. For a quick, shallow
-  surface sketch use `recon` instead. Do NOT trigger to test one specific vuln
-  class (use that class's skill) or when no concrete in-scope target was given.
+description: "Map-first engagement orchestrator for an authorized target — map the full attack surface, baseline happy flows, impact-score candidates, route each to the matching vuln skill (shared JSON artifacts the skills consume). Use to 'map this app', 'fully recon <domain>', 'start an assessment'. Quick sketch -> recon; single vuln class -> that skill."
 location: .claude/skills/recon-mapper/SKILL.md
 allowed-tools: Bash(python3 *) Bash(bash *) Read Write Grep Glob
 ---

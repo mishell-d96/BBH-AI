@@ -1,6 +1,6 @@
 ---
 name: jwt
-description: Attacks JSON Web Tokens (JWT) used for auth/session/claims — forges tokens to escalate privileges, bypass auth, or take over accounts via weak signature handling. Use when you see a JWT/Bearer token (eyJ... three base64url parts separated by dots), an alg header, the none algorithm, HS256/RS256 signing, jwk/jku/kid header params, a weak/guessable signing secret, or RS256→HS256 algorithm confusion. Triggers: decoded token shows role/admin/sub claims, signature not enforced, brute-forcing HMAC secret with hashcat, header injection, kid path traversal/SQLi.
+description: "JWT attacks — forge tokens to escalate/bypass auth or take over accounts. Use for eyJ... tokens, alg header, none algorithm, HS256/RS256, jwk/jku/kid params, weak HMAC secret (hashcat), RS256->HS256 confusion, role/admin/sub claims, unenforced signature."
 ---
 
 # JWT Attacks

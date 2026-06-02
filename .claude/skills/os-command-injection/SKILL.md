@@ -1,6 +1,6 @@
 ---
 name: os-command-injection
-description: Detect and prove OS command injection (shell injection / RCE) in web apps where user input feeds an OS command. Use when a parameter looks like it shells out — ping/traceroute/nslookup network tools, file or image conversion (ImageMagick, ffmpeg, pdf), backups, exports, archive extraction, or admin utilities; when you can try separators ; | & && || $() backticks or newline; for blind command injection confirmed via time delays or OAST (DNS+HTTP) callbacks.
+description: "OS command injection (shell injection / RCE) where input feeds an OS command. Use when a param shells out — ping/traceroute/nslookup, file/image conversion (ImageMagick/ffmpeg), backups, exports, archive extraction. Separators ; | & && || $() backticks; blind via time delay or OAST."
 ---
 
 # OS Command Injection

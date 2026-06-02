@@ -1,6 +1,6 @@
 ---
 name: access-control-idor
-description: Find and prove broken access control — IDOR, horizontal/vertical privilege escalation, and forced browsing to privileged functions. Use when a request exposes an object reference (id/uuid/account/order/user/customer_number/filename params), when there are /admin or privileged paths, role/privilege/isAdmin flags, multi-step flows (checkout, password reset, account update), Referer- or location-based gating, or anytime you can compare what two different accounts are allowed to do. Signals: IDOR, BOLA, forced browsing, X-Original-URL, method switch, URL-matching quirks, horizontal vs vertical escalation.
+description: "Broken access control — IDOR/BOLA, horizontal & vertical privilege escalation, forced browsing to /admin or privileged functions. Use when requests expose object refs (id/uuid/account/order/user/filename), role/isAdmin flags, multi-step flows, or you can compare two accounts' access."
 ---
 
 # Access Control & IDOR

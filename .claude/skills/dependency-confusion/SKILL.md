@@ -1,16 +1,6 @@
 ---
 name: dependency-confusion
-description: >-
-  Find and prove dependency confusion / supply-chain exposure where an internal
-  package name is unclaimed on a public registry, so a build that searches both
-  private and public sources can be tricked into fetching attacker code. Use when
-  package.json / requirements.txt / pom.xml / Gemfile / build.gradle / nuget.config
-  is leaked in client JS, source maps, repos, CI logs, or error messages; when
-  internal or scoped package names (npm @scope, PyPI, Maven groupId/artifactId,
-  RubyGems, NuGet) are not present on the public registry; when references to a
-  private/internal registry, Artifactory, Azure Artifacts, or --extra-index-url
-  appear. Keywords: dependency confusion, namespace squatting, supply chain,
-  unclaimed package, internal package, private registry, npm scope, .npmrc.
+description: "Dependency confusion / supply chain — internal package name unclaimed on a public registry. Use when package.json/requirements.txt/pom.xml/Gemfile/nuget.config leaks internal or scoped names (npm @scope, PyPI, Maven, NuGet) or references a private registry/Artifactory/--extra-index-url."
 ---
 
 # Dependency Confusion

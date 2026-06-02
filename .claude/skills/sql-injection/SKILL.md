@@ -1,6 +1,6 @@
 ---
 name: sql-injection
-description: Detect, confirm, and minimally exploit SQL injection (SQLi) to prove real impact (data exfiltration, auth bypass). Use when a param feeds a SQL query — numeric/string values in WHERE, ORDER BY, INSERT/UPDATE, table/column names; when you see DB error messages mentioning SQL syntax / unclosed quotation mark / ORA- / SQLSTATE / "conversion failed when converting varchar to int"; on login forms (login bypass with administrator'--); when probing with single-quote, OR 1=1, UNION SELECT, ORDER BY n; for blind SQLi (boolean differential, conditional errors, time delays WAITFOR/SLEEP/pg_sleep/dbms_pipe, OAST/DNS exfil); stacked/batched queries; and SQLi in JSON/XML bodies or second-order stored input.
+description: "SQL injection — detect, confirm, minimally exploit (data exfil, auth bypass). Use when a param feeds SQL (WHERE/ORDER BY/INSERT), DB errors appear (SQL syntax/ORA-/SQLSTATE), login bypass (administrator'--), single-quote/OR 1=1/UNION SELECT; blind boolean/time-based (SLEEP/pg_sleep/WAITFOR), OAST exfil, stacked queries, JSON/XML body, second-order."
 ---
 
 # SQL Injection

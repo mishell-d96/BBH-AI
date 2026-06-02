@@ -1,50 +1,28 @@
 export const meta = {
   name: 'panel',
-  description: 'Multi-agent discussion panel that pressure-tests a candidate finding before reporting',
+  description: 'Two-agent adversarial panel that pressure-tests a candidate finding before reporting',
   phases: [
-    { title: 'Discuss', detail: 'Round-robin debate over a shared transcript' },
-    { title: 'Verdict', detail: 'Arbiter synthesizes a go/no-go on the finding' },
+    { title: 'Advocate', detail: 'Strongest concrete case for the finding' },
+    { title: 'Verdict', detail: 'Skeptic refutes, then returns the go/no-go' },
   ],
 }
 
 // ---- Inputs (override via the Workflow `args` value) -------------------------
 // args may be:
-//   - a string            -> treated as the topic/finding to discuss
-//   - { topic, evidence, rounds, participants: [{name, brief}] }
-// IMPORTANT: workflow scripts cannot read files. Paste the actual finding
-// evidence (request/response, PoC + its real output, affected in-scope URL,
-// relevant _RECON artifact excerpts) into `cfg.evidence` so the panel judges
-// real material instead of speculating from a one-line topic.
+//   - a string                       -> the topic/finding to judge
+//   - { topic, evidence, rebuttals }  -> rebuttals = extra advocate<->skeptic
+//                                         exchanges before the verdict (default 0)
+// IMPORTANT: workflow scripts cannot read files. Paste the actual evidence
+// (request/response, executed PoC + its REAL output, affected in-scope URL,
+// relevant _RECON excerpts) into `cfg.evidence` — the panel judges real material,
+// it cannot run anything itself.
 const cfg = (typeof args === 'string') ? { topic: args } : (args ?? {})
 
 const TOPIC = cfg.topic
   ?? 'Is the candidate finding a real, reportable, high-impact vulnerability? Prove it or discard it.'
 const EVIDENCE = cfg.evidence
-  ?? '(none supplied — agents must flag the absence of concrete evidence as a blocker, not assume it.)'
-const ROUNDS = cfg.rounds ?? 3
-
-// Default panel — tailored to this workspace's "prove it or discard it" discipline.
-const PARTICIPANTS = cfg.participants ?? [
-  {
-    name: 'ANALYST',
-    brief: 'You believe there is a real, high-impact vulnerability. Make the strongest concrete case: '
-      + 'the exact attack path, the affected in-scope asset, a minimal PoC, and the business impact '
-      + '("if X then attacker does Y to asset Z causing W"). No speculation — only what is provable.',
-  },
-  {
-    name: 'SKEPTIC',
-    brief: 'You are an adversarial triager. Try hard to REFUTE the finding: missing preconditions, '
-      + 'out-of-scope assumptions, unproven steps, banned hedging ("might/could/may"), duplicates, '
-      + 'accepted-risk, or noise (header/CSP/self-XSS). Demand a working minimal PoC. Default to '
-      + '"not proven" when anything is hand-waved.',
-  },
-  {
-    name: 'ARBITER',
-    brief: 'You are neutral. Weigh ANALYST vs SKEPTIC strictly against the workspace rules: scope gate, '
-      + 'concrete impact hypothesis, manual validation, minimal safe PoC, signal-over-noise. Identify '
-      + 'exactly what is still needed to clear the bar, or confirm it already does.',
-  },
-]
+  ?? '(none supplied — treat the absence of concrete evidence as a blocker, not an assumption.)'
+const REBUTTALS = cfg.rebuttals ?? 0   // extra exchanges before verdict; 0 = lean 2-agent panel
 
 const RULES = [
   'Workspace rules in force:',
@@ -52,38 +30,47 @@ const RULES = [
   '- Impact-first: a concrete, provable impact hypothesis is required.',
   '- No speculation: ban "might/could/may be exploitable" — proved or not.',
   '- Minimal, safe PoC required; no destructive/bulk actions.',
-  '- Signal over noise: do not treat headers/CSP/self-XSS/version-disclosure as standalone findings.',
+  '- Signal over noise: headers/CSP/self-XSS/version-disclosure are not standalone findings.',
   '',
-  'WHAT THIS PANEL CAN AND CANNOT DO: this is a reasoning panel — no agent here can',
-  'run curl, hit the target, or execute a PoC. You judge ONLY the argument and the',
-  'EVIDENCE supplied below. Treat any claim whose proof is not present in the EVIDENCE',
-  'as UNPROVEN. "Reportable" means: the case clears the bar ASSUMING the cited PoC was',
-  'actually executed and its real output appears in the EVIDENCE — never assume it was.',
+  'WHAT THIS PANEL CAN AND CANNOT DO: no agent here can run curl, hit the target,',
+  'or execute a PoC. Judge ONLY the argument and the EVIDENCE supplied. Treat any',
+  'claim whose proof is not present in the EVIDENCE as UNPROVEN. "Reportable" means',
+  'the case clears the bar GIVEN that the cited PoC was actually executed and its',
+  'real output appears in the EVIDENCE — never assume it was.',
 ].join('\n')
 
-// ---- Discussion: round-robin over a shared transcript -----------------------
-phase('Discuss')
-let transcript = `TOPIC:\n${TOPIC}\n\n${RULES}\n\n=== EVIDENCE (the only concrete material; do not invent beyond it) ===\n${EVIDENCE}\n`
+const HEADER = `TOPIC:\n${TOPIC}\n\n${RULES}\n\n`
+  + `=== EVIDENCE (the only concrete material; do not invent beyond it) ===\n${EVIDENCE}\n`
 
-outer:
-for (let round = 0; round < ROUNDS; round++) {
-  for (const p of PARTICIPANTS) {
-    const turn = await agent(
-      `You are ${p.name}.\n${p.brief}\n\n`
-      + `This is round ${round + 1} of ${ROUNDS}. Read the discussion so far and add ONLY your next turn `
-      + `(concise, concrete, no role-playing of other participants).\n\n`
-      + `=== DISCUSSION SO FAR ===\n${transcript}`,
-      { label: `${p.name} r${round + 1}`, phase: 'Discuss' },
-    )
-    if (!turn) {                                  // agent skipped by the user
-      log(`${p.name} r${round + 1} was skipped — ending discussion early and proceeding to verdict.`)
-      break outer
-    }
-    transcript += `\n[${p.name} — round ${round + 1}]:\n${turn}\n`
-  }
+// ---- Agent 1: ADVOCATE — strongest concrete case ----------------------------
+phase('Advocate')
+let transcript = HEADER
+const advocacy = await agent(
+  `You are the ADVOCATE. Make the strongest concrete case that this is a real, high-impact, `
+  + `reportable vulnerability: the exact attack path, the affected in-scope asset, the minimal PoC, `
+  + `and the business impact ("if X then attacker does Y to asset Z causing W"). Cite only what the `
+  + `EVIDENCE actually proves — no speculation, no hand-waving.\n\n${transcript}`,
+  { label: 'advocate', phase: 'Advocate' },
+)
+if (advocacy) transcript += `\n[ADVOCATE]:\n${advocacy}\n`
+
+// ---- Optional extra exchanges (only if the operator asked for more rigor) ----
+for (let r = 0; r < REBUTTALS; r++) {
+  const sk = await agent(
+    `You are the SKEPTIC. Adversarially refute the ADVOCATE: missing preconditions, out-of-scope `
+    + `assumptions, unproven steps, hedging, duplicates/accepted-risk, or noise. Add only your next turn.\n\n${transcript}`,
+    { label: `skeptic rebuttal ${r + 1}`, phase: 'Advocate' },
+  )
+  if (sk) transcript += `\n[SKEPTIC]:\n${sk}\n`
+  const adv = await agent(
+    `You are the ADVOCATE. Answer the SKEPTIC's objections with proof from the EVIDENCE, or concede `
+    + `the point. Add only your next turn.\n\n${transcript}`,
+    { label: `advocate rebuttal ${r + 1}`, phase: 'Advocate' },
+  )
+  if (adv) transcript += `\n[ADVOCATE]:\n${adv}\n`
 }
 
-// ---- Verdict: structured go/no-go ------------------------------------------
+// ---- Agent 2: SKEPTIC — refute, then deliver the verdict ---------------------
 phase('Verdict')
 const VERDICT_SCHEMA = {
   type: 'object',
@@ -100,30 +87,32 @@ const VERDICT_SCHEMA = {
       enum: ['critical', 'high', 'medium', 'low', 'none'],
       description: 'Honest severity if reportable; otherwise none.',
     },
-    rationale: { type: 'string', description: 'Why this verdict, citing the strongest points from the debate.' },
+    rationale: { type: 'string', description: 'Why this verdict, citing the strongest points for and against.' },
     missing_to_prove: {
       type: 'array', items: { type: 'string' },
       description: 'Concrete gaps still blocking a report (empty if REPORTABLE).',
     },
     next_steps: {
       type: 'array', items: { type: 'string' },
-      description: 'The exact next actions — e.g. which vuln-class skill to run, what PoC to capture.',
+      description: 'Exact next actions — which vuln-class skill to run, what PoC to capture.',
     },
   },
 }
 
 const verdict = await agent(
-  `You are the panel chair. Read the full discussion and deliver the final, honest verdict on the finding.\n`
-  + `You CANNOT run anything — judge only the argument and the EVIDENCE in the transcript.\n`
+  `You are the SKEPTIC and final arbiter — neutral but adversarial. First try hard to REFUTE the `
+  + `ADVOCATE's case (missing preconditions, out-of-scope assumptions, unproven steps, hedging, `
+  + `duplicates/accepted-risk, noise). Then deliver the honest verdict against the workspace rules. `
+  + `You CANNOT run anything — judge only the argument and the EVIDENCE.\n`
   + `Verdict rules:\n`
-  + `- REPORTABLE only if the EVIDENCE already contains an executed minimal PoC with real output, `
-  + `an in-scope asset, and a concrete impact. If the PoC is merely described/proposed but its `
-  + `actual output is NOT in the EVIDENCE, you MUST return NEEDS_MORE_PROOF, not REPORTABLE.\n`
-  + `- NEEDS_MORE_PROOF: the case is plausible but something above is missing — list exactly what, `
-  + `including "execute the PoC and capture its output" whenever proof was only argued.\n`
+  + `- REPORTABLE only if the EVIDENCE already contains an executed minimal PoC with REAL output, an `
+  + `in-scope asset, and a concrete impact. If the PoC is only described/proposed (its output is NOT `
+  + `in the EVIDENCE), you MUST return NEEDS_MORE_PROOF, never REPORTABLE.\n`
+  + `- NEEDS_MORE_PROOF: plausible but something is missing — list exactly what, including `
+  + `"execute the PoC and capture its output" whenever proof was only argued.\n`
   + `- DISCARD: out of scope, noise, duplicate/accepted-risk, or refuted.\n\n`
-  + `=== FULL DISCUSSION ===\n${transcript}`,
-  { label: 'chair: verdict', phase: 'Verdict', schema: VERDICT_SCHEMA },
+  + `=== DISCUSSION SO FAR ===\n${transcript}`,
+  { label: 'skeptic: verdict', phase: 'Verdict', schema: VERDICT_SCHEMA },
 )
 
-return { topic: TOPIC, rounds: ROUNDS, participants: PARTICIPANTS.map(p => p.name), transcript, verdict }
+return { topic: TOPIC, rebuttals: REBUTTALS, transcript, verdict }

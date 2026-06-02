@@ -1,6 +1,6 @@
 ---
 name: authentication
-description: Find and prove authentication vulnerabilities in login, registration, password reset/change, and 2FA flows that lead to account takeover. Use when testing login/register/reset/2FA flows, username enumeration, brute-force/lockout protection, remember-me cookies, password reset tokens, OTP/verification codes, credential stuffing, or any account takeover (ATO) chain.
+description: "Authentication flaws -> account takeover in login, registration, password reset, 2FA. Use for username enumeration, brute-force/lockout, remember-me cookies, reset tokens, OTP/verification codes, credential stuffing, ATO chains."
 ---
 
 ## When to test

@@ -1,6 +1,6 @@
 ---
 name: ssti
-description: Detect and exploit Server-Side Template Injection (SSTI) — user input rendered as template syntax server-side, often escalating to RCE or arbitrary file read. Use when input is reflected into a template engine (Jinja2, Twig, Freemarker, Velocity, Smarty, ERB, Handlebars, Pug/Jade, Mako), when math probes like {{7*7}} or ${7*7} evaluate to 49, or when testing email templates, custom pages, preview/name/greeting fields, or any ${} / {{} / <%= %> rendering context.
+description: "Server-Side Template Injection -> RCE or file read. Use when input is rendered by a template engine (Jinja2, Twig, Freemarker, Velocity, Smarty, ERB, Handlebars, Pug, Mako), when {{7*7}} or ${7*7} evaluates to 49, or in email templates / preview / name / greeting fields."
 ---
 
 # SSTI — Server-Side Template Injection

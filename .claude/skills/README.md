@@ -26,6 +26,7 @@ don't engage them cold. Use `/recon` only for a quick, shallow sketch.
 |-------|---------|
 | [recon-mapper](recon-mapper/) | **Map-first orchestrator** — full surface map → happy-flow baselines → impact-scored candidates → routing to the skills below (run this first) |
 | [recon](recon/) | Quick, shallow attack-surface sketch (subdomains/content/params/tech) when you don't need the full pipeline |
+| [recon-monitor](recon-monitor/) | **Continuous surface diffing** — snapshot on a cadence, diff vs last run, surface only what *changed* (new subdomains/endpoints/JS), route the delta back into `recon-mapper` (run *after* a baseline exists) |
 | [essential-skills](essential-skills/) | Payload encoding/obfuscation for filter/WAF bypass; scanner-assisted manual testing |
 | [reporting](reporting/) | Turning a validated finding into a clear, impact-led, reproducible report |
 

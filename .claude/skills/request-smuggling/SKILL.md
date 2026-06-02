@@ -1,17 +1,6 @@
 ---
 name: request-smuggling
-description: >-
-  Detect and prove HTTP request smuggling (HTTP desync) where chained HTTP
-  processors disagree on message boundaries, letting an attacker prepend bytes
-  to another user's request. Use when the target sits behind a front-end/back-end
-  proxy, CDN, reverse proxy, or load balancer; when you see Content-Length +
-  Transfer-Encoding handling differences or want to test CL.TE, TE.CL, TE.TE,
-  HTTP/2 downgrade (H2.CL / H2.TE), CL.0, or 0.CL desync. Covers timing-based
-  and differential detection, front-end control bypass, capturing victim
-  requests, reflected-XSS amplification, web cache poisoning/deception, response
-  queue poisoning, and request tunnelling. Keywords: request smuggling, HTTP
-  desync, CL.TE, TE.CL, TE.TE, H2.CL, H2.TE, CL.0, chunked, Transfer-Encoding,
-  Content-Length, HTTP/2 downgrade, response queue poisoning, cache poisoning.
+description: "HTTP request smuggling (desync) where chained proxies disagree on message boundaries. Use behind a front-end/back-end proxy, CDN, or LB; test CL.TE, TE.CL, TE.TE, HTTP/2 downgrade (H2.CL/H2.TE), CL.0. Covers front-end bypass, victim-request capture, cache poisoning, response queue poisoning."
 ---
 
 # HTTP Request Smuggling (Desync)

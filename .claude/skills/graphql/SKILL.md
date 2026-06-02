@@ -1,6 +1,6 @@
 ---
 name: graphql
-description: Detect and exploit GraphQL API vulnerabilities — introspection-driven schema mapping, access-control/IDOR via object arguments, exposed admin mutations and privilege fields, unsanitized-argument injection (SQLi), alias-based rate-limit bypass, batching brute-force, and GraphQL CSRF. Use when you see a /graphql, /api, /graphql/v1 or /api/graphql endpoint, a response containing __typename / __schema, GraphQL queries or mutations, aliases, batched query arrays, introspection enabled, schema "Did you mean" suggestions, or a GraphQL endpoint accepting non-JSON content types. Keywords: graphql, introspection, __schema, __typename, mutation, query, alias, batching, clairvoyance, suggestions, GraphQL IDOR, GraphQL CSRF.
+description: "GraphQL vulns — introspection schema mapping, access-control/IDOR via object args, exposed admin mutations, argument injection (SQLi), alias rate-limit bypass, batching brute-force, CSRF. Use for /graphql or /api/graphql, __schema/__typename, queries/mutations, batched arrays, suggestions."
 ---
 
 # GraphQL API vulnerabilities

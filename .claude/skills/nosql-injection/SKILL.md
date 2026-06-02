@@ -1,6 +1,6 @@
 ---
 name: nosql-injection
-description: Detects and proves NoSQL injection (syntax and operator injection) in MongoDB/CouchDB-style backends to achieve auth bypass and data extraction. Use when you see JSON-bodied APIs, login or filter endpoints, JSON query params, MongoDB/NoSQL backends, or want to test operators like $ne, $gt, $in, $regex, $where — for both operator injection and syntax injection.
+description: "NoSQL injection (syntax + operator) in MongoDB/CouchDB-style backends -> auth bypass, data extraction. Use for JSON-bodied APIs, login/filter endpoints, JSON query params; operators $ne/$gt/$in/$regex/$where."
 ---
 
 # NoSQL Injection
