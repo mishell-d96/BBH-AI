@@ -127,6 +127,39 @@ reflected-XSS / open-redirect sitting in the very same params.
 `query`/`lang` value (→ test XSS) during routing. Shipped so the next engagement does this by default.
 **Tooling:** still no install — pure methodology gap.
 
+### Iteration 2 addendum 5 — completeness workflow results + the meta-lesson (2026-06-07)
+The 12-agent completeness sweep (`wf_eab786a7-98c`) confirmed 2 genuinely new high-impact bugs I had
+missed, both **independently reproduced by the main agent** before logging:
+- **API token forging** (`_EXPLOIT/..._api-token-forge_unverified-sig-plus-sqli.md`) — `ApiAuthFilter`
+  doesn't verify the signature AND the token's USER_ID segment is SQL-injectable → offline-mint an admin
+  token with no credential. **Highest-impact finding of the engagement.**
+- **Negative `transferAmount`** inverts the ledger (`_EXPLOIT/..._negative-amount_api-transfer.md`).
+
+**THE META-LESSON (most important of the whole engagement):** *both* new bugs were already covered by
+skills I own and chose to use — `custom-opaque-tokens` **step 3** (tamper/strip the signature — flagged in
+the skill as "the single highest-value 1-request test") and **step 6** (segment injection), and
+`business-logic` line 36 (negative amount reverses money flow). I **decoded the token (step 2) and stopped**;
+I tested `/api/transfer` for ownership but not for negative amounts. My misses this engagement were
+overwhelmingly **incomplete execution of owned skills**, not missing skill content.
+
+| # | Friction / insight | Fix shipped |
+|---|--------------------|-------------|
+| 16 | Stopped a skill's decision tree at the first interesting result (decoded token creds → didn't run the signature probe / segment-injection that the same skill ranks higher). | **custom-opaque-tokens**: explicit "finding an embedded credential is step 2 of 7, NOT the finish line" + new step 2b "every decoded segment is attacker-controlled input re-parsed each request → inject SQLi/XPath in the identity segment (a code path independent of /login)." + **durable memory** `run-owned-skills-to-completion`. |
+| 17 | (validation) The workflow caught my incomplete execution; my manual writeup-cross-check caught what the workflow's seed blinded it to. | Process note (lesson #15): completeness needs BOTH adversarial fan-out AND an external oracle (writeups/spec); and sweep-negatives must be (endpoint,class)-scoped. |
+
+**Behavioral root cause across this engagement** (tunnel vision #14, stop-at-decode #16, and earlier
+canned-200 near-misses): I tend to stop at the first finding/negative on a surface. Countermeasures now in
+skills (full-class-set routing, "tree to completion") + memory. **Tooling: still zero installs across all of
+Iteration 2** — every gain was technique/discipline.
+
+### Final tally (demo.testfire.net, all iterations) — 10 confirmed defect classes
+SQLi auth-bypass (`/api/login` + `/doLogin`→admin); blind SQLi credential extraction; **API token forge
+(unverified sig + SQLi in auth filter)**; BOLA ×3 (`/api/account/{n}`, `/bank/showAccount`, `/api/transfer`
+source-ownership); **negative-amount** ledger inversion; reflected XSS ×4 (`/sendFeedback`, `/search.jsp`,
+`/bank/queryxpath.jsp`, `/bank/customize.jsp?lang=`); **open redirect** (`customize.jsp?content=`); path
+traversal→WEB-INF; credential-embedding token. Refuted/inert: admin changePass/addUser, status_check SSRF,
+transfer stack-trace. Endpoint noted, not finished: `/bank/ccApply` (SQLi-listed, params not enumerated).
+
 ---
 
 ## Iteration 1 — 2026-06-05/06 · target: demo.testfire.net (AltoroJ, training/accepted-risk-by-design)

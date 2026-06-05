@@ -37,6 +37,19 @@ redirect* sitting in the same params. Fix shipped to essential-skills + recon-ma
 its FULL applicable class set; a negative on one class does not close the param). Also: my completeness
 workflow's KNOWN-list marked these pages "negative for class X", which can wrongly blacklist them for class Y.
 
+### Found by the completeness workflow (wf_eab786a7-98c), independently verified by main agent
+| # | Candidate | Verdict | Note |
+|---|-----------|---------|------|
+| 12 | **API token forging** — `ApiAuthFilter` (a) does NOT verify the signature + (b) SQLi in the token's USER_ID segment → mint admin/any-user token OFFLINE, no creds | **CONFIRMED** (independently reproduced: `mktok "admin'-- " junk GARBAGE` → admin accounts; tautology → all 10) | `_EXPLOIT/2026-06-07_..._api-token-forge_unverified-sig-plus-sqli.md` — **highest impact**; distinct code path from `/api/login` SQLi |
+| 13 | **Negative `transferAmount`** on `/api/transfer` inverts both ledger legs (no amount validation) | **CONFIRMED** | `_EXPLOIT/2026-06-07_..._negative-amount_api-transfer.md` — input-validation flaw, distinct from the source-ownership BOLA |
+| — | Verbose Java stack trace on `/api/transfer` (`abc`→500) | **REFUTED** by workflow verifier | low-value info disclosure, not reported (correct) |
+
+**Workflow vs manual research were complementary (completeness insight):** the finders independently
+re-found the `customize.jsp?lang=` XSS and surfaced the token-forge + negative-amount bugs — but they did
+NOT re-find the `customize.jsp?content=` open-redirect or `queryxpath.jsp` XSS, because my KNOWN-list seed
+marked those *endpoints* as negatives (lesson #15: scope sweep-negatives to (endpoint,class) pairs, never
+blacklist an endpoint). Neither the manual pass nor the workflow alone was complete; together they were.
+
 ### Full API surface (from `/swagger/properties.json`, basePath `/api`) — saved to `api_spec.json`
 `/login` (get,post) · `/account` (get) · `/account/{accountNo}` (get) · `/account/{accountNo}/transactions`
 (get,post) · `/transfer` (post — **BOLA #7**) · `/feedback/submit` (post) · `/feedback/{feedbackId}` (get —
