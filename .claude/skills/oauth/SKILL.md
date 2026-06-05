@@ -25,7 +25,9 @@ parsing quirk or missing `state` often yields full account takeover.
   attacker's social profile -> attacker logs in as victim. **P2.**
 - Unverified-email registration at provider -> register victim's email -> log into client as
   victim. **P1/P2.**
-- Stolen implicit `access_token` accepted without `client_id`/binding check -> ATO. **P2.**
+- PKCE present at `/authorize` but not enforced at `/token` -> leaked `code` redeemable, no
+  verifier needed -> ATO. **P2.**
+- (Legacy) Stolen implicit `access_token` accepted without `client_id`/binding check -> ATO. **P2.**
 - These are full-auth-bypass bugs; treat a working PoC as top of queue.
 
 ## Detection (map the flow first)
@@ -38,6 +40,9 @@ parsing quirk or missing `state` often yields full account takeover.
 4. `state`: present? Unguessable? Tied to the session? Replayable across users? Absent = CSRF.
 5. Token handling: for implicit, does the client's session-establishing POST re-validate the
    token belongs to the submitted user/`client_id`, or does it trust client-supplied fields?
+6. PKCE: does `/authorize` send `code_challenge`(`_method`)? If so, is it actually **enforced** at
+   `/token`? Replay the auth `code` with **no** `code_verifier` (or a wrong one) — a token still
+   issued = PKCE decorative (downgrade), so a leaked `code` is fully redeemable.
 
 ## Exploitation
 - **redirect_uri -> code/token exfil:** point `redirect_uri` to attacker host (or a leaky page on
@@ -47,8 +52,14 @@ parsing quirk or missing `state` often yields full account takeover.
 - **Missing/weak state -> CSRF account linking:** initiate the link flow as the attacker, capture
   the callback URL containing *your* `code`, drop the `state`, and deliver that callback to the
   victim. Their account links your social identity; you then "Log in with <provider>" as them.
-- **Implicit token forgery:** if the client POSTs `{email, token}` to establish a session and
-  doesn't verify the token matches the email/`client_id`, swap in the victim's email.
+- **PKCE not enforced (downgrade):** modern flows are auth-code+PKCE. If `/authorize` sends a
+  `code_challenge`, test whether `/token` actually **enforces** it — replay the auth code with
+  **no** `code_verifier`, then with a *mismatched* verifier. If a token is still issued, PKCE is
+  decorative: a leaked `code` (referer, redirect_uri leak, logs) is fully redeemable without the
+  attacker ever holding the verifier. Re-rank any `code`-leak primitive to **P2** on this result.
+- **Implicit token forgery (legacy):** the deprecated implicit grant (`response_type=token`) is
+  rare in new apps but still live in older SSO. If the client POSTs `{email, token}` to establish a
+  session and doesn't verify the token matches the email/`client_id`, swap in the victim's email.
 - **Flawed scope / email verification:** at `/token` or `/userinfo`, add `scope` the user never
   consented to; if upgraded -> broken scope validation. Trust of an unverified `email` claim ->
   ATO via attacker-registered account using the victim's email.
@@ -77,6 +88,19 @@ Host: attacker.test
 
 # 3. Prove takeover: exchange LEAKED_CODE at the client (active victim session, no secret needed),
 #    or POST it to the client's callback to obtain victim's authenticated session.
+```
+
+PKCE-enforcement test (auth code captured with a `code_challenge` in the original `/authorize`):
+```
+# Redeem the code at /token WITHOUT code_verifier. PKCE-enforced -> error
+# (invalid_grant / "code_verifier required"); decorative -> a token is issued.
+curl -s -X POST https://oauth-provider.target.com/token \
+  -d grant_type=authorization_code \
+  -d code=LEAKED_CODE \
+  -d redirect_uri=https://client.target.com/cb \
+  -d client_id=CLIENT | jq .
+# Confirm with a deliberately WRONG verifier — a token here = no binding check at all:
+#   -d code_verifier=ZZZdoesNotMatchTheChallengeZZZ...
 ```
 
 Forced account-link CSRF (missing state):

@@ -87,6 +87,19 @@ Source: https://portswigger.net/web-security/file-path-traversal
 | `C:\inetpub\wwwroot\web.config` | IIS app config / secrets |
 | `C:\Windows\repair\SAM` | Account DB (high impact, often locked) |
 
+## In-context targets — dispatcher includes (JSP / .NET / PHP)
+Use when the sink is a context-bound include (200 + empty body on OS paths) and `/etc/passwd` is unreachable. Resolve **relative to the app root**, not `/`.
+| File | Why |
+|---|---|
+| `../WEB-INF/web.xml` | Java app config; routes, servlets, often DB creds / framework version |
+| `../WEB-INF/classes/<pkg>/<Class>.class` | Compiled source -> decompile for logic & secrets |
+| `../WEB-INF/applicationContext.xml`, `../WEB-INF/spring/*.xml` | Spring beans / datasource creds |
+| `../WEB-INF/classes/application.properties`, `*.yml` | App config / secrets |
+| `<page>.jsp` (in-context) | JSP source disclosure |
+| `web.config` / `../web.config` | .NET app config, connection strings, machineKey |
+| `../bin/<App>.dll` | .NET compiled assembly -> decompile |
+| `appsettings.json` (.NET Core) | Config / secrets |
+
 ## Quick test loop (one file, minimal)
 ```bash
 for p in \

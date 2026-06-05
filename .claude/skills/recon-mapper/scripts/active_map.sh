@@ -96,9 +96,29 @@ else
   note_tool ffuf skipped "missing tool or wordlist ($WL)"
 fi
 
+# --- Parameter discovery on API/JSON endpoints (hidden object-ref/mass-assign params) ---
+# Feeds endpoints[].params with source:"arjun" so BOLA/priv-esc params aren't guessed downstream.
+if have arjun; then
+  # API/JSON endpoints from the crawl; fall back to each host root if none found yet.
+  ARJUN_IN="$RAW/arjun_targets.txt"
+  { [ -f "$RAW/crawl.txt" ] && grep -iE '/api/|\.json($|\?)' "$RAW/crawl.txt"; } 2>/dev/null \
+    | grep '^http' | sort -u >"$ARJUN_IN" || true
+  if [ ! -s "$ARJUN_IN" ]; then
+    while read -r h; do [ -n "$h" ] && echo "https://${h}/"; done <"$HOSTS" >"$ARJUN_IN"
+  fi
+  # --rate-limit matches the conservative 20 req/s cap. arjun -m takes ONE method, so run GET
+  # (read params -> object-ref/IDOR) and POST (write params) separately; both are merged downstream.
+  ok=0
+  arjun -i "$ARJUN_IN" -m GET  --stable --rate-limit 20 -oJ "$RAW/arjun_get.json"  >/dev/null 2>&1 && ok=1
+  arjun -i "$ARJUN_IN" -m POST --stable --rate-limit 20 -oJ "$RAW/arjun_post.json" >/dev/null 2>&1 && ok=1
+  [ "$ok" = 1 ] && note_tool arjun ok || note_tool arjun skipped "error"
+else
+  note_tool arjun skipped "not installed (~/.local/bin/arjun)"
+fi
+
 # --- Low-noise nuclei (exposures/misconfig/tech only — NOT intrusive fuzzing) ---
 if have nuclei; then
-  nuclei -silent -list "$HOSTS" -tags exposure,misconfiguration,tech -rate-limit 20 \
+  nuclei -silent -list "$HOSTS" -tags exposure,misconfig,tech -rate-limit 20 \
          -jsonl -o "$RAW/nuclei.jsonl" >/dev/null 2>&1 && note_tool nuclei ok \
          || note_tool nuclei skipped "error"
 else
@@ -145,9 +165,36 @@ if os.path.exists(ap):
         if u.startswith("http"):
             endpoints.add(u)
 
+# arjun-discovered params, keyed by endpoint URL -> merged into endpoints[].params (source:"arjun")
+arjun_params = {}  # url -> set(param names)
+for _fn in ("arjun_get.json", "arjun_post.json", "arjun.json"):  # GET+POST passes (arjun -m is one method)
+    jp = os.path.join(raw, _fn)
+    if not os.path.exists(jp):
+        continue
+    try:
+        aj = json.load(open(jp))
+        # arjun -oJ emits {url: {"params": [...], ...}, ...} (or a list of such).
+        items = aj.items() if isinstance(aj, dict) else \
+                [(e.get("url"), e) for e in aj if isinstance(e, dict)]
+        for url, info in items:
+            if not url:
+                continue
+            params = info.get("params", info) if isinstance(info, dict) else info
+            if isinstance(params, dict):
+                params = params.get("params", [])
+            for p in (params or []):
+                name = p.get("name") if isinstance(p, dict) else p
+                if name:
+                    arjun_params.setdefault(url, set()).add(str(name))
+            endpoints.add(url)
+    except Exception:
+        pass
+
 js_files = sorted({u for u in endpoints if u.split("?")[0].endswith(".js")})
-endpoint_objs = [{"url": u, "methods": ["GET"], "params": [], "source": "crawl/archive"}
-                 for u in sorted(endpoints)]
+endpoint_objs = []
+for u in sorted(endpoints):
+    params = [{"name": n, "source": "arjun"} for n in sorted(arjun_params.get(u, set()))]
+    endpoint_objs.append({"url": u, "methods": ["GET"], "params": params, "source": "crawl/archive"})
 
 surface = {
     "hosts": hosts,

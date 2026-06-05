@@ -87,6 +87,7 @@ workflow below.
 ## Diff → route (close the loop)
 Treat every diff entry as a fresh candidate entering the map-first workflow — **never test it cold,
 never report it un-paneled.**
+- **🚨 New or changed AUTH surface (TOP PRIORITY)** — a new `/login` `/oauth` `/saml` `/reset` `/mfa` endpoint, a changed token / `Set-Cookie` shape, or a new IdP → **escalate immediately** to `/recon-mapper` for an auth baseline, then route to `/authentication`, `/oauth`, `/jwt`, `/saml-sso` (and `/custom-opaque-tokens` for a non-JWT token shape). **Auth-surface drift OUTRANKS generic new endpoints** — a re-architected login/SSO/session flow is where pre-disclosure ATO chains live; chase it before anything else in the diff.
 - **New / newly-live host** → re-run `/recon-mapper` scoped to that host (full map + happy-flow baseline + impact scoring). Also check `/subdomain-takeover` if it resolves to a dangling/unclaimed service.
 - **Changed or new JS bundle** → `/secrets-exposure` (new keys/tokens) and re-read for **new endpoints/params/sinks** → feed those to `/recon-mapper`; `/dom-based` if new client-side sinks appear.
 - **New endpoint (esp. with params or `/api`)** → `/recon-mapper` to baseline it, then the routed class (`/api-testing`, `/access-control-idor`, `/sql-injection`, …).

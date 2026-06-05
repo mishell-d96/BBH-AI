@@ -24,7 +24,17 @@ account takeover, not a single-account bug. Do not under-rate it.
 
 ## Detection
 1. Capture the legitimate login (baseline). Intercept the `SAMLResponse`,
-   base64-decode (and inflate if redirect-binding), save the raw XML.
+   base64-decode (and inflate if redirect-binding), save the raw XML. Read it
+   from the CLI — no Burp needed just to look:
+   - POST-binding (`SAMLResponse`/`SAMLRequest` form field, plain base64):
+     ```bash
+     echo '<SAMLResponse>' | base64 -d | xmllint --format -
+     ```
+   - Redirect-binding (`?SAMLRequest=`/`?SAMLResponse=` query param, URL-encoded
+     + raw-DEFLATE'd before base64):
+     ```bash
+     python3 -c "import sys,base64,zlib,urllib.parse as u; print(zlib.decompress(base64.b64decode(u.unquote(sys.argv[1])),-15).decode())" '<SAMLRequest>'
+     ```
 2. Map **what is signed**: is the `<ds:Signature>` over the whole `Response`,
    over the `Assertion`, or both? Note the `Reference URI="#..."` and the
    signed element's `ID`. Unsigned-but-trusted elements are the prize.

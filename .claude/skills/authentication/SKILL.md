@@ -3,6 +3,8 @@ name: authentication
 description: "Authentication flaws -> account takeover in login, registration, password reset, 2FA. Use for username enumeration, brute-force/lockout, remember-me cookies, reset tokens, OTP/verification codes, credential stuffing, ATO chains."
 ---
 
+> **Prereq — map first:** Don't test this cold. A target attack-surface map and the relevant happy-flow baseline must exist first — run `/recon-mapper` if not. Test this class against the impact-scored candidate list (highest priority first), reuse the routed `handoff_context`, and pursue chains to real business impact over isolated low-severity bugs.
+
 ## When to test
 
 Any credential-handling surface:
@@ -66,9 +68,6 @@ Keep it minimal and SAFE; log proven exploits to `./_EXPLOIT/` with a curl repro
 
 ```
 # 1. Authenticate as YOUR test account through step 1 (sets session cookie)
-
-> **Prereq — map first:** Don't test this cold. A target attack-surface map and the relevant happy-flow baseline must exist first — run `/recon-mapper` if not. Test this class against the impact-scored candidate list (highest priority first), reuse the routed `handoff_context`, and pursue chains to real business impact over isolated low-severity bugs.
-
 curl -s https://target/login -d 'username=attacker&password=Test123!' -i
 # 2. At the verify step, swap the account binding to the victim, brute the code
 curl -s https://target/login-steps/second \

@@ -54,12 +54,21 @@ else
 fi
 
 # --- Archived URLs (historical surface) ---
+# waybackurls/gau are accelerators if present; otherwise query the Wayback CDX API directly (curl only).
 if have waybackurls; then
   echo "$TARGET" | waybackurls >"$RAW/archive_urls.txt" 2>/dev/null && note_tool waybackurls ok
 elif have gau; then
   gau --subs "$TARGET" >"$RAW/archive_urls.txt" 2>/dev/null && note_tool gau ok
+elif have curl; then
+  if curl -fsS --max-time 60 \
+       "https://web.archive.org/cdx/search/cdx?url=*.${TARGET}/*&output=text&fl=original&collapse=urlkey&limit=5000" \
+       -o "$RAW/archive_urls.txt" 2>/dev/null; then
+    note_tool "wayback-cdx" ok "curl fallback (waybackurls/gau absent)"
+  else
+    note_tool "wayback-cdx" skipped "request failed or rate-limited"
+  fi
 else
-  note_tool waybackurls skipped "not installed (gau also absent)"
+  note_tool waybackurls skipped "not installed (gau and curl also absent)"
 fi
 
 # --- Assemble phase1_assets.json (dedupe hosts from all passive sources) ---

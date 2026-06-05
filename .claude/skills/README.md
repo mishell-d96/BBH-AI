@@ -66,7 +66,8 @@ don't engage them cold. Use `/recon` only for a quick, shallow sketch.
 | Skill | Use for |
 |-------|---------|
 | [oauth](oauth/) | OAuth 2.0 / OIDC flaws → account takeover |
-| [jwt](jwt/) | JWT signature/alg-confusion/header-injection attacks |
+| [jwt](jwt/) | JWT signature/alg-confusion/header-injection attacks (`eyJ…` tokens) |
+| [custom-opaque-tokens](custom-opaque-tokens/) | Non-JWT opaque/base64/hex bearer & session tokens — decode, embedded-cred disclosure, weak/unverified-signature forge |
 | [saml-sso](saml-sso/) | SAML/SSO XML signature wrapping → auth bypass / ATO |
 | [deserialization](deserialization/) | Insecure deserialization → RCE (gadget chains) |
 

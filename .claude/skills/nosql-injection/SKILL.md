@@ -56,6 +56,10 @@ For URL-encoded/form bodies, operators can sometimes be injected as `username[$n
 - **Timing-based (blind):** `"$where":"sleep(5000)"` to confirm; then branch:
   `function(x){if(x.password[0]==='a'){sleep(5000)}}(this)`.
 
+### Blind confirmation (OAST default, time-delay fallback)
+- **Default — OAST callback** (jitter-immune binary proof). Where the engine can egress, force a DNS/HTTP hit instead of timing. Get a host: `~/go/bin/interactsh-client -v` (live domain; install: `go install github.com/projectdiscovery/interactsh-client/cmd/interactsh-client@latest`), or zero-install public `oast.fun`/`oast.pro`. Watch for the callback; a single hit confirms execution.
+- **Fallback — time-delay with paired zero-delay control** (only when no egress). Repeat each probe **3x**: a TRUE/sleep probe (`sleep(5000)`) and a control probe with the same shape but **0 ms** delay (`sleep(0)` or a false branch). Report **only if all 3 TRUE-probes are consistently slow AND all 3 control-probes are consistently fast** — the differential rejects network jitter as a false positive.
+
 ## Common bypasses
 - Encoding: URL-encode the fuzz/payload; a null byte `'%00` can truncate trailing query conditions.
 - **Content-type switching**: if form-encoded is sanitized, resend as `application/json` to enable operator objects (and vice versa).

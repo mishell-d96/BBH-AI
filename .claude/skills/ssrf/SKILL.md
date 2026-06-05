@@ -31,6 +31,16 @@ Any feature where the server fetches a URL on your behalf:
 3. Point at cloud metadata `http://169.254.169.254/` — any 200/redirect/timing change is promising.
 4. Sweep RFC1918 (`http://192.168.0.0/24`, `10.x`, `172.16–31.x`) — diff response length/timing to map live internal hosts.
 
+### Blind confirmation — OAST is the default
+No response shown? Confirm out-of-band, not by feel. An OAST callback (DNS+HTTP) is jitter-immune binary proof; time-delay is the **fallback only**.
+- **Default:** get a callback host, point the param at it, watch for a DNS or HTTP hit.
+  ```bash
+  ~/go/bin/interactsh-client -v   # prints a live <id>.oast.* domain; logs each DNS/HTTP hit
+  # zero-install fallback: use a public oast.fun / oast.pro host
+  ```
+  Then `?url=http://<id>.oast.fun/` — DNS hit alone (no HTTP) = outbound HTTP filtered, still SSRF.
+- **Fallback (no egress):** response/timing diff. Time-delay is unreliable alone — pair every TRUE probe (e.g. internal host that hangs) with a **zero-delay control** (an instantly-refused/closed port) and repeat **3×**. Report only if all 3 TRUE probes are slow **and** all 3 control probes are fast.
+
 ## Exploitation
 - **Server itself:** `http://localhost/admin`, `http://127.0.0.1/admin` — trust relationships often skip auth for loopback. Trigger an admin action via the SSRF if proving impact.
 - **Back-end systems:** internal IPs/hostnames not externally routable; read internal-only endpoints, admin consoles, dashboards.
@@ -38,7 +48,7 @@ Any feature where the server fetches a URL on your behalf:
   - AWS: `http://169.254.169.254/latest/meta-data/iam/security-credentials/<role>` (IMDSv2 needs a token header).
   - GCP: `http://metadata.google.internal/computeMetadata/v1/` + header `Metadata-Flavor: Google`.
   - Azure: `http://169.254.169.254/metadata/instance?api-version=2021-02-01` + header `Metadata: true`.
-- **Blind SSRF (no response shown):** confirm via OAST, then escalate — probe internal ranges with OAST payloads to map hosts, hit known-vulnerable internal services, or feed a malicious response to exploit a client-side parser (path to RCE).
+- **Blind SSRF (no response shown):** confirm via the OAST default above, then escalate — probe internal ranges with OAST payloads to map hosts, hit known-vulnerable internal services, or feed a malicious response to exploit a client-side parser (path to RCE).
 
 ## Common bypasses
 When filters block internal targets, evade them (defense evasion only — stay in scope):

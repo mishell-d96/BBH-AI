@@ -52,6 +52,21 @@ A triager should reproduce in minutes. Include:
 - **Expected vs actual** — what a secure system would do vs what happens.
 - **Cleanup** — undo any state you changed; note if data was created/modified.
 
+### Access-control repro — the 4-line attribution ledger (mandatory)
+An IDOR/BOLA report is triage-verifiable only when these four lines are shown back-to-back, each with its actual status code and a **distinct B-only field** (e.g. `"owner":"userB"`, B's email, B's invoice total) so the triager sees the boundary fail and rules out public/shared data:
+1. **Baseline** — A reads A's object with A's token → `200`, shows A's data.
+2. **The bug** — A reads **B's** object with **A's** token → `200` + B's DISTINCT data.
+3. **Not public** — UNAUTH read of B's object (no token) → `401/403` (proves it isn't just public data).
+4. **Real, distinct object** — A reads a **bogus/non-existent** id with A's token → `404`/distinct not-found (proves the id maps to a real, B-owned object, not a fluke).
+```bash
+T_A='Authorization: Bearer <A_token>'
+curl -s -o /dev/null -w '1 baseline   %{http_code}\n' -H "$T_A" "$BASE/api/objects/$A_ID"   # 200
+curl -s              -w '\n2 bug       %{http_code}\n' -H "$T_A" "$BASE/api/objects/$B_ID"   # 200 + B-only field
+curl -s -o /dev/null -w '3 unauth     %{http_code}\n'         "$BASE/api/objects/$B_ID"       # 401/403
+curl -s -o /dev/null -w '4 bogus-id   %{http_code}\n' -H "$T_A" "$BASE/api/objects/99999999"  # 404
+```
+For **write / money-movement BOLA**, use the same Baseline / Attack (with a **unique marker** in the payload) / Control-A (no auth → reject) / Control-B (non-existent id → not-found) pattern, and capture **victim before-state and after-state** (read B's object as B before and after the attack) so the unauthorized change to B is undeniable.
+
 ## Duplicate & quality check
 - Conceptually check for dupes: is this a known issue, recently patched, or already-reported pattern on this asset?
 - Is it a **known-accepted risk** or documented behavior? (Check program policy / prior disclosures.)

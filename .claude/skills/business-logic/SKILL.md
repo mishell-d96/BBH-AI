@@ -47,13 +47,24 @@ find them by understanding the domain and then breaking assumptions.
 - Reuse a valid encrypted token from one feature in another.
 
 ## Minimal PoC (for ./_EXPLOIT/)
-Capture the **smallest** request sequence that proves the abuse and its $ / privilege impact. Example (manipulated price purchase):
+Capture the **smallest** request sequence that proves the abuse and its $ / privilege impact. Prove it via a **state delta (ledger/balance), not a reflected `"success":true`** — a 200 with a happy message means nothing if the balance never moved. Read state before, tamper, read state after:
+```bash
+T=https://TARGET; TOK=eyJ...   # program-issued token
+
+# 1. balance BEFORE
+curl -s "$T/api/account/A" -H "Authorization: Bearer $TOK" | jq '.balance'
+
+# 2. tamper: negative amount reverses the money flow (B -> A)
+curl -s -X POST "$T/api/transfer" \
+  -H "Authorization: Bearer $TOK" -H 'Content-Type: application/json' \
+  -d '{"from":"A","to":"B","amount":-100}'
+
+# 3. balance AFTER — finding is real ONLY if the delta is wrong (A went UP)
+curl -s "$T/api/account/A" -H "Authorization: Bearer $TOK" | jq '.balance'
 ```
-1. POST /cart        product_id=1&quantity=1            -> item added
-2. POST /cart        product_id=1&quantity=-1&price=1   -> server accepts negative/edited price
-3. POST /checkout                                       -> order total $0.00 / negative, payment succeeds
-```
-Log: exact requests/responses, the assumption broken, resulting total/balance, and one-line impact ("bought $1299 laptop for $0"). Keep it non-destructive — one proof order, do not drain real inventory or balances.
+Log: exact requests/responses, the assumption broken, the **before/after delta** that proves it, and one-line impact ("$100 transfer to B credited $100 to A instead"). Keep it non-destructive — one proof transaction, do not drain real inventory or balances.
+
+**When also test race:** If the value gates a once-only or balance-limited action (transfer, withdrawal, coupon, refund), also run `/race-conditions` — the single-packet double-spend is the sibling test on the same endpoint.
 
 ## Don't report as noise
 - Workflow you can complete out of order but that yields no privilege/data/$ gain.

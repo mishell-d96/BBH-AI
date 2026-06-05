@@ -19,12 +19,31 @@ Broken access control / IDOR is high-signal and routinely lands **P1/P2**:
 Honest framing: a single proven object you don't own, returned with sensitive data, is a real finding. Report impact, not theory.
 
 ## Detection
+**Default breadth pass — passive cross-account replay.** Run a passive cross-account replay (Burp Autorize, or a scripted mitmproxy/curl harness when a custom token breaks Autorize): set account B's token AND an unauthenticated context as the two replay vantages, scope to the in-scope host + an `/api/` regex, and leave it running during all mapping. Every request you make as A is auto-replayed as B and as anon. Bypassed rows are **CANDIDATES, never findings** — each still needs the differential below.
+
 Two-account method is the gold standard:
 1. Authenticate as **two** low-priv users (A and B) and ideally one admin.
 2. As A, capture every request that references an object or privileged action.
 3. Replay A's requests using **B's session** (and B's object IDs in A's session). If A can read/modify B's resource, that's IDOR.
 4. As a low-priv user, hit admin/privileged endpoints directly (forced browsing): `/admin`, links from `robots.txt`, JS-leaked hidden URLs, wordlist brute force.
-5. **Compare responses** — status, length, body. Watch for redirects that still leak the body. GUIDs aren't safe if they leak elsewhere (messages, reviews, API listings).
+5. **Compare responses by CONTENT, never by length** — per-user payloads differ in size, so a length diff is noise. Use the app's denial fingerprint (its own forbidden/unauthorized JSON string) as the deny-oracle, and confirm a real hit only when **A's unique data marker appears in B's / anon's body**. Watch for redirects that still leak the body. GUIDs aren't safe if they leak elsewhere (messages, reviews, API listings).
+6. **403-vs-404 existence-leak oracle:** a `403` where an absent resource returns `404` confirms the object **exists** but enforcement is the only thing standing in the way (also leaks valid IDs to harvest). Same logic in forced browsing: `403 ≠ 404` = the path is real.
+7. **Test WRITE / DELETE / trigger across the A→B boundary, not just GETs** — state-changing BOLA is ~46% of confirmed cases. For every read you diff, diff the matching update/delete/state-flip too.
+
+```bash
+# Forced-browsing oneshot — 403 (path exists, gated) is the signal, not 404
+ffuf -u 'https://target/FUZZ' \
+  -w /usr/share/seclists/Discovery/Web-Content/raft-medium-words.txt \
+  -H 'Cookie: session=<low-priv>' -mc 200,302,403 -fr login
+# -fr login filters reflected login redirects; mc 403 keeps existence-leaking paths.
+```
+
+## Acquiring valid IDs (obfuscation is not authorization)
+You need a *real* foreign object ID to prove a hit. **Obfuscation is not authorization** — an opaque ID still leaks.
+- **Sequential integers:** increment/decrement by one to the adjacent record. Don't bulk-enumerate; one foreign object proves it.
+- **Opaque IDs (UUID/hash/slug) — DON'T guess.** Harvest cross-tenant IDs that the app itself hands you, then replay as B: list/search/export endpoints, error messages, `Location`/email links, and GraphQL `node`/edge responses.
+- **GraphQL global IDs:** base64-decode → increment the embedded numeric → re-encode, then query the `node`.
+- **Wildcards / sentinels:** try `me`, `0`, `-1`, `null`, or a **known other identifier** in the ID slot — some backends resolve these to the current/first/other user.
 
 ## Exploitation
 **Vertical escalation**
@@ -69,6 +88,62 @@ curl -i 'https://target.example/' \
   -H 'X-Original-URL: /admin'
 ```
 Log proven findings to `./_EXPLOIT/` with this single curl repro, the two account contexts, and the exact response evidence (status + the one cross-user field returned).
+
+**Write / money-movement BOLA — copy-paste differential skeleton** (drives the 3-control discipline below; the unique marker makes the effect provably *yours*):
+
+```bash
+TGT=https://target.example; OBJ=1002          # OBJ = victim object you do NOT own
+A='Authorization: Bearer <USER_A_TOKEN>'
+
+# 0) Victim state BEFORE (read the ledger/record you'll mutate)
+curl -s "$TGT/api/accounts/$OBJ/transactions" -H "$A" | jq '.[-1]'
+
+# 1) Baseline — A acts on A's OWN object (record the success shape)
+curl -i -X POST "$TGT/api/accounts/<USER_A_OBJ>/transfer" -H "$A" \
+  -d 'to=<A_DEST>&transferAmount=3.71'
+
+# 2) Attack — A acts on the NON-OWNED object, UNIQUE marker (3.71, never a generic 1)
+curl -i -X POST "$TGT/api/accounts/$OBJ/transfer" -H "$A" \
+  -d 'to=<A_DEST>&transferAmount=3.71'
+
+# 3) Control-A — same attack with NO auth header => expect 401 (defect is ownership, not authn)
+curl -i -X POST "$TGT/api/accounts/$OBJ/transfer" \
+  -d 'to=<A_DEST>&transferAmount=3.71'
+
+# 4) Control-B — non-existent id => expect a DISTINCT not-found, proving the server resolved & could've checked
+curl -i -X POST "$TGT/api/accounts/999999999/transfer" -H "$A" \
+  -d 'to=<A_DEST>&transferAmount=3.71'
+
+# 5) Victim state AFTER — the 3.71 marker now in the victim ledger is the proof, not the success JSON
+curl -s "$TGT/api/accounts/$OBJ/transactions" -H "$A" | jq '.[-1]'
+```
+
+## Proving a state-change / money-movement BOLA (attribution discipline)
+Read-IDOR is proven by a response body. **Write/action BOLA** (transfer, refund, password change,
+delete, status flip on a non-owned object) needs proof the action *actually executed against the
+victim object* — and on a shared/noisy target a generic success message is not enough. Use this
+3-control differential; it isolates "broken ownership check" from "no auth" and "endpoint can't
+resolve the object", and makes the effect uniquely yours:
+
+1. **Baseline** — perform the action on an object you **own** (owned→owned). Record the success shape.
+2. **Attack** — perform it with the **non-owned** object as the target/source, with a **unique
+   attacker-chosen marker value** (e.g. `transferAmount=3.71`, a tagged note, an odd quantity) — *never*
+   a generic `1`/`$1` that other testers' traffic also produces. Capture the object's state
+   **before and after** (its transaction log / record), so the marker change is provably *your* request.
+3. **Control A — auth enforced:** same request **without** the session → expect `401/redirect`. Proves the
+   defect is *ownership*, not a missing-auth endpoint.
+4. **Control B — server resolves the object:** point the action at a **non-existent** id → expect a
+   distinct "invalid/not found" error. Proves the server looks the object up and *had the data to check
+   ownership* but didn't — converting "missing feature" into "broken authorization".
+
+A success message the server generates by reflecting your input is **not** independent proof; the
+before/after state delta on the victim object with your unique marker is. Keep it minimal and
+reversible (smallest amount, into an account you control, one object).
+
+**Field guardrails (avoid the common false positives):**
+- **A `200`/`"success"` is NOT proof of a side effect.** Before claiming a state change or privesc, verify the action *actually happened*: log in as the user you supposedly created, hit a duplicate/conflict on re-creating it, or find your unique marker in the victim's ledger.
+- **Run BOTH a no-token AND a garbage-token control.** `no-token → 401` **+** `garbage-token → 401` **+** `valid-low-priv-token → 200` proves the gap is missing **authorization**, not missing **authentication**. (Control-A above is the no-token leg; add the garbage-token leg to seal it.)
+- **`500`/empty on object lookup = untestable, not refuted.** When the tested id resolves to nothing, record `"untestable: no object at tested id"`, NOT `"IDOR refuted"` — a *populated* id may still be vulnerable; go acquire a real foreign id (see above) and retry.
 
 ## Chain for impact
 A single cross-user read is already a finding — the big payouts come from chaining it:

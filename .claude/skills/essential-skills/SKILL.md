@@ -41,6 +41,28 @@ Use a scanner to triage breadth on requests your intuition flagged — never as 
 - **Non-standard structures** — for delimited values like `user=048857-carlos`, highlight just `carlos`, or define insertion points in Intruder before scanning.
 - **ALWAYS manually validate** every finding end-to-end before it counts. Per CLAUDE.md: only PROVEN, impactful vulns ship.
 
+### CLI scanner-assist (Burp is one option, not the only one)
+Map intent → installed tool. Every hit is a **LEAD to hand-confirm**, never a verdict. Keep scanning **ONE insertion point, not a full crawl**.
+- **Single-request breadth** — `nuclei -u <url> -tags exposure,misconfig -rl <cap>` (respect scope rate cap via `-rl`).
+- **DAST triage** — `katana -u <t> | nuclei -dast` (hits are LEADS; reproduce each by hand).
+- **Suspected XSS param** — `dalfox url '<url>?p=FUZZ' --skip-bav --only-poc` (`--skip-bav` drops noisy basic-checks; `--only-poc` prints just confirmed PoCs).
+- **Suspected SQLi param** — `sqlmap -u '<url>' -p <param> --batch --random-agent --level 2 --risk 1`. Escalate `--level`/`--risk` only as a fallback; `--crawl --level=5 --risk=3` is noise.
+- **Param discovery** — `arjun -u <url> -m GET` (arjun's `-m` takes ONE method; run `-m POST` separately for write endpoints).
+
+## Differential-probe triage (cross-cutting)
+Every injection class is confirmed by a probe **plus its NEUTRAL twin** — the control isolates the parser from coincidence and kills false positives.
+- **SQLi** — break `'` vs heal `''` (broken errors/differs, healed restores baseline).
+- **Path traversal** — legit-file fetch vs `../`-traversal of the same target.
+- **XSS** — canary present (correct context) vs canary absent.
+- **Blind** — time-delay probe vs zero-delay control, or OAST callback vs no-callback.
+
+**"Do you have a neutral control?" must be answered before any finding enters the panel gate.** No control → not yet confirmed.
+
+### Getting an OAST host
+Standardize the **OAST (out-of-band) callback as the DEFAULT blind-confirmation channel** — it is jitter-immune binary proof. **Time-delay is the FALLBACK only** and REQUIRES a paired zero-delay control repeated **3×**: report only if all 3 TRUE-probes are slow AND all 3 control-probes are fast.
+- Live domain: `interactsh-client -v` (installed at `~/go/bin/interactsh-client`) — watch for DNS/HTTP hits.
+- Zero-install fallback: use a public `oast.fun` / `oast.pro` host.
+
 ## Encoding quick table
 | Type | Example in → out |
 |------|------------------|

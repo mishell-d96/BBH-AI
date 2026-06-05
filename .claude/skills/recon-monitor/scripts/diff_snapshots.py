@@ -15,11 +15,21 @@ Writes diff_<newts>.json and diff_<newts>.md under --outdir. Exit 0 always
 import argparse
 import json
 import os
+import re
 import sys
 from urllib.parse import urlparse
 
+# Auth-surface drift OUTRANKS generic new endpoints: a new/changed login, SSO,
+# reset, or MFA path is where pre-disclosure ATO chains live. Endpoints whose
+# path matches this get reclassified from new_endpoint -> auth_surface (CRITICAL).
+AUTH_PATH_RE = re.compile(
+    r"/(login|signin|sign-in|logon|auth|authorize|authn|oauth|openid|connect|"
+    r"sso|saml|acs|idp|reset|forgot|recover|mfa|2fa|otp|verify|token|session|"
+    r"register|signup|sign-up)\b", re.I)
+
 # change-type -> (priority, where it routes in the workflow)
 ROUTING = {
+    "auth_surface":    ("CRITICAL", "ESCALATE NOW: /recon-mapper auth baseline -> /authentication, /oauth, /jwt, /saml-sso (and /custom-opaque-tokens for a non-JWT token shape). Auth-surface drift outranks generic new endpoints."),
     "new_host":        ("HIGH",   "/recon-mapper on this host (full map + baseline); check /subdomain-takeover if it CNAMEs to an unclaimed service"),
     "newly_live_host": ("HIGH",   "/recon-mapper on this host — it just came online"),
     "new_endpoint":    ("MEDIUM", "/recon-mapper to baseline it, then the routed class (/api-testing, /access-control-idor, /sql-injection, ...)"),
@@ -85,6 +95,11 @@ def build_changes(old, new):
     for u in sorted(ne - oe):
         has_params = "?" in u and "=" in u
         looks_api = "/api" in u.lower() or "graphql" in u.lower()
+        looks_auth = bool(AUTH_PATH_RE.search(urlparse(u).path or u))
+        if looks_auth:
+            changes.append({"type": "auth_surface", "key": u,
+                            "detail": f"NEW AUTH endpoint: {u}", "params": has_params, "api": looks_api})
+            continue
         flag = " [params]" if has_params else ""
         flag += " [api]" if looks_api else ""
         changes.append({"type": "new_endpoint", "key": u, "detail": f"new endpoint: {u}{flag}",
@@ -115,7 +130,7 @@ def build_changes(old, new):
 
 
 def render_md(target, old_ts, new_ts, changes, new_surface):
-    order = {"HIGH": 0, "MEDIUM": 1, "LOW": 2, "INFO": 3}
+    order = {"CRITICAL": 0, "HIGH": 1, "MEDIUM": 2, "LOW": 3, "INFO": 4}
     changes = sorted(changes, key=lambda c: (order.get(c["priority"], 9), c["type"]))
     L = []
     L.append(f"# recon-monitor diff — {target}")
@@ -136,7 +151,7 @@ def render_md(target, old_ts, new_ts, changes, new_surface):
              "`/panel` → `_EXPLOIT/` + `/reporting`.")
     L.append("> **Scope-recheck-required** items must clear `scope_guard.py` before ANY active probe.")
     L.append("")
-    for prio in ("HIGH", "MEDIUM", "LOW", "INFO"):
+    for prio in ("CRITICAL", "HIGH", "MEDIUM", "LOW", "INFO"):
         group = [c for c in changes if c["priority"] == prio]
         if not group:
             continue
@@ -188,8 +203,9 @@ def main():
     with open(md_path, "w") as f:
         f.write(render_md(target, old_ts, new_ts, changes, new))
 
+    crit = sum(1 for c in changes if c["priority"] == "CRITICAL")
     high = sum(1 for c in changes if c["priority"] == "HIGH")
-    print(f"[diff] {old_ts} -> {new_ts}: {len(changes)} change(s), {high} HIGH. "
+    print(f"[diff] {old_ts} -> {new_ts}: {len(changes)} change(s), {crit} CRITICAL (auth drift), {high} HIGH. "
           f"Report: {md_path}", file=sys.stderr)
     return 0
 

@@ -13,6 +13,7 @@ Read arbitrary files on the server by escaping the intended directory with `../`
 ## When to test
 Any parameter whose value is, or feeds into, a filesystem path:
 - Obvious names: `file=`, `filename=`, `path=`, `doc=`, `document=`, `template=`, `page=`, `view=`, `image=`, `img=`, `download=`, `attachment=`, `dir=`, `folder=`.
+- **Not just query strings** — check the same keys in **JSON request bodies** (`{"file":"logo.png"}`, `{"template":"..."}`) and **GraphQL arguments** (`image(path:"...")`, `download(file:"...")`). These are commonly under-tested; spray the same payloads there.
 - Endpoints: download/preview/export handlers, image/avatar loaders, template/theme/locale loaders, log viewers, PDF/report generators.
 - Signals: the value already contains a path or extension (`logo.png`, `en_US.json`, `reports/2024.pdf`); changing it changes which file is served.
 
@@ -30,13 +31,25 @@ Any parameter whose value is, or feeds into, a filesystem path:
 4. If the raw probe fails, the input is likely filtered or constrained — move to Exploitation.
 
 ## Exploitation
-Work through these when a naive `../` is blocked:
+Only escalate the encoding ladder **after a plain `../` attempt is blocked** — try each rung in order, stopping at the first that lands:
+1. **Raw** `../` — confirm it's actually filtered before climbing the ladder.
+2. **Single URL-encode** `%2e%2e%2f` — defeats a literal-`../` blocklist.
+3. **Double URL-encode** `%252e%252e%252f` — for sinks that decode once then filter (proxy/app double-decode).
+4. **Nested** `....//` (or `....\/`) — if `../` is stripped **non-recursively**, the leftover collapses back to `../`.
+5. **Non-recursive-normalization** abuse — chain stripped+nested+encoded so post-normalization the path still escapes (e.g. `....//%2e%2e%2f`).
+
+Orthogonal constraints (apply alongside the ladder, not in sequence):
 - **Absolute path** — defenses that only strip traversal may still accept `file=/etc/passwd`.
-- **Nested sequences** — if `../` is stripped non-recursively, use `....//` or `....\/` so the leftover collapses to `../`.
-- **Encoding** — URL `%2e%2e%2f`, double `%252e%252e%252f`, non-standard `..%c0%af` / `..%ef%bc%8f`. Try mixing.
 - **Required base folder** — if input must start with the expected dir, prepend it: `file=/var/www/images/../../../etc/passwd`.
-- **Required extension + null byte** — if a `.png`/`.pdf` suffix is enforced (legacy stacks): `file=../../../etc/passwd%00.png`.
+- **Non-standard `/`** — `..%c0%af` (overlong) / `..%ef%bc%8f` (fullwidth) on lenient decoders.
+- *Legacy only (PHP <5.3.4 / old Java/C) — skip on modern stacks:* required-extension null-byte truncation `file=../../../etc/passwd%00.png`.
 - Combine bypasses (e.g. base folder + double encoding) when single techniques fail.
+
+## Include-primitive triage (JSP / .NET / PHP) — do this BEFORE declaring success or failure
+Determine the **include primitive first** — it decides whether arbitrary OS files are even reachable:
+1. **Send a known-bad / nonexistent control filename first** (e.g. `?file=ZZNOPE_does_not_exist`) to learn what a *miss* looks like for this sink.
+2. **If an out-of-context path returns HTTP 200 with an EMPTY / unchanged body** (not an OS error like 500 or file-not-found), the sink is a **context-bound dispatcher include** (Java `RequestDispatcher` / `<jsp:include>`, .NET virtual-path include) — `/etc/passwd` is **NOT readable**. Stop probing OS files and **pivot to in-context protected paths** the dispatcher *can* resolve: `../WEB-INF/web.xml`, `../WEB-INF/classes/*.class`, `*.jsp` source, .NET `web.config`.
+3. **If out-of-context paths throw OS errors** (500 / "No such file"), the sink reads the raw filesystem — climb the encoding ladder for `/etc/passwd`.
 
 ## Common bypasses
 | Defense | Bypass |

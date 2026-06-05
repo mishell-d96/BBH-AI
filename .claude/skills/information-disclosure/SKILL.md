@@ -31,6 +31,20 @@ A site unintentionally reveals sensitive information: user data/PII, secrets, so
 - Probe `TRACE` (echoes request, may reflect internal/auth headers) and verbose error triggers.
 - Check `robots.txt`, `sitemap.xml`, well-known debug endpoints.
 
+### Installed-tool oneshots (copy-paste)
+```bash
+# .git exposure probe — 200/304 on /.git/HEAD = dumpable repo (confirm "ref: refs/heads/...")
+curl -s -o /dev/null -w '%{http_code}\n' https://TARGET/.git/HEAD
+
+# source-map sweep — flag bundles shipping a .map (original source recoverable)
+for j in $(katana -u https://TARGET -silent | grep -E '\.js$'); do
+  curl -s -o /dev/null -w "%{http_code} $j.map\n" "$j.map"; done | grep '^200'
+
+# backup/temp file fuzz — proven-disclosure extensions only; respect program rate cap
+ffuf -w /usr/share/seclists/Discovery/Web-Content/raft-medium-files.txt \
+  -u https://TARGET/FUZZ -e .bak,.old,.zip,.swp,~ -mc 200 -rate <cap>
+```
+
 ## Exploitation (turn a leak into impact)
 - Keys/credentials/tokens -> authenticate to the API/backend and demonstrate a privileged action (read-only, minimal).
 - Source / source maps -> read logic to find auth bypass, hardcoded secrets, hidden params.
