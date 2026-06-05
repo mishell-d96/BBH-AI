@@ -158,7 +158,16 @@ SQLi auth-bypass (`/api/login` + `/doLogin`→admin); blind SQLi credential extr
 source-ownership); **negative-amount** ledger inversion; reflected XSS ×4 (`/sendFeedback`, `/search.jsp`,
 `/bank/queryxpath.jsp`, `/bank/customize.jsp?lang=`); **open redirect** (`customize.jsp?content=`); path
 traversal→WEB-INF; credential-embedding token. Refuted/inert: admin changePass/addUser, status_check SSRF,
-transfer stack-trace. Endpoint noted, not finished: `/bank/ccApply` (SQLi-listed, params not enumerated).
+transfer stack-trace.
+
+### Last thread closed — /bank/ccApply SQLi (2026-06-07)
+`POST /bank/ccApply` (`passwd`, form at `/bank/apply.jsp`) confirmed SQLi → password-gate bypass: break
+`'`→500 / heal `''`→200 (string-concat signature, NOT the date-validation false-positive showTransactions
+had), and a wrong password + `' OR '1'='1` passes the gate that a plain wrong password fails. **Third
+independent SQLi code path.** `_EXPLOIT/2026-06-07_..._SQLi-ccApply-passwd.md`. Finding it just required
+following the multi-class/complete-execution discipline: locate the form (`apply.jsp` → `action=ccApply`),
+learn the param (`passwd`), run the break/heal + bypass differential. **Engagement complete — no open
+threads. Total: 11 confirmed defect classes, 13 _EXPLOIT artifacts. Zero tool installs across Iteration 2.**
 
 ---
 

@@ -10,7 +10,7 @@ Tracks what was actually tested vs. silently skipped. Provenance: intentionally-
 | 1 | Information Gathering | [x] | Surface mapped (`notes.md`): legacy bank + REST API + swagger UI. Server: Apache-Coyote/Tomcat, AltoroJ. |
 | 2 | Configuration & Deployment | [x] | `index.jsp?content=../WEB-INF/web.xml` discloses deployment descriptor (logged Iteration-1 path-traversal). admin interface `/admin/admin.jsp` found. No exposed `.git`. |
 | 3 | Identity Management | [~] | `admin` user + low-priv (`jsmith`) confirmed via SQLi. Registration not deeply tested (low value on demo). |
-| 4 | Authentication | [x] | **SQLi auth bypass on BOTH `/api/login` (Iter-1) AND `/doLogin`→Admin (Iter-2).** Highest-impact category, fully exercised. |
+| 4 | Authentication | [x] | **SQLi on THREE independent code paths:** `/api/login` (bypass + blind extraction), `/doLogin`→Admin, `/bank/ccApply` passwd (gate bypass). Plus API token forge (unverified sig + auth-filter SQLi). Fully exercised. |
 | 5 | Authorization | [x] | API BOLA `/api/account/{n}` (Iter-1) + **legacy-UI BOLA `/bank/showAccount?listAccounts=N`** (Iter-2, jsmith reads any account); `AltoroAccounts` client-trusted cookie; admin forced-browse gated for anon (302). doTransfer source-ownership ENFORCED (negative). |
 | 6 | Session Management | [~] | JSESSIONID Secure+HttpOnly. **API `Authorization` token reversibly embeds cleartext password** (`base64(user):base64(pass):sig`) — credential exposure (finding #6). CSRF/session-fixation deprioritized. |
 | 7 | Input Validation | [x] | Reflected XSS `/sendFeedback` + `search.jsp?query=`. SQLi: `/api/login` + `/doLogin`. **Negatives:** queryxpath XPath (exceptions swallowed), listAccounts (int-cast), showTransactions dates (date-validated). |

@@ -28,7 +28,7 @@
 | 8 | `GET /bank/queryxpath.jsp?query=` **reflected XSS** | **CONFIRMED** | input reflected into `value="..."`; `"><script>alert(1)</script>` breaks out. I'd tested this page for XPath only. |
 | 9 | `GET /bank/customize.jsp?lang=` **reflected XSS** | **CONFIRMED** | raw into HTML body: `Current Language: <script>alert(1)</script>`. I'd tested this page for traversal only. |
 | 10 | `GET /bank/customize.jsp?content=<url>` **open redirect** | **CONFIRMED** | `content=https://evil.example/` → `302 Location: https://evil.example/`. I'd tested `content=` for traversal only. |
-| 11 | `POST /bank/ccApply` SQLi (ZAP-listed) | **endpoint exists** (GET 405, empty POST 500) | params not yet enumerated; never discovered in my crawl. |
+| 11 | `POST /bank/ccApply` (`passwd`) **SQLi → password-gate bypass** | **CONFIRMED** (break `'`→500 / heal `''`→200; wrong-pw rejected but wrong-pw+tautology passes) | `_EXPLOIT/2026-06-07_..._SQLi-ccApply-passwd.md` — form at `/bank/apply.jsp`; 3rd independent SQLi code path. Thread CLOSED. |
 | — | `POST /bank/showTransactions` SQLi (ZAP-listed) | **NEGATIVE confirmed** | strict date-format parsing rejects injection (ZAP also marks it a false-positive). |
 
 **Root-cause of the misses (generalizable):** I tested each endpoint for ONE vuln class (queryxpath→XPath,
