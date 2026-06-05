@@ -34,6 +34,21 @@ Real targets won't tell you the bug class. Work from behavior:
 - Probe with benign markers first, observe how/where they surface, infer the sink, then pull in the matching skill (XSS, SQLi, SSTI, path traversal, etc.).
 - A single underlying bug shows up in subtly different shapes; adapt the technique, don't pattern-match a single lab.
 
+### One parameter → its FULL applicable class set (anti-tunnel-vision — high-yield)
+The #1 cause of *missed* bugs is testing a parameter for the **one** class its name suggests, getting a
+negative, and leaving. The same param is routinely vulnerable to a *different* class. Route by what the
+param **does**, and clear the whole battery before closing it:
+- **Any param whose value is reflected anywhere** → test **XSS** — *even if you came for SQLi/XPath/SSTI*.
+  (Real miss: `queryxpath.jsp?query=` — tested for XPath only, missed a reflected XSS in the echoed value;
+  `customize.jsp?lang=` — assumed cosmetic, was reflected XSS.)
+- **Any param holding a URL / path / file / `content`/`next`/`redirect`/`url`/`page`/`dest`/`template`** →
+  test the **whole set**: path-traversal/LFI **and** open-redirect **and** SSRF **and** (if rendered) SSTI/XSS.
+  (Real miss: `customize.jsp?content=` — tested for traversal only, was an **open redirect** to an external host.)
+- **Any param feeding a query** → SQLi/NoSQL/XPath **and**, if reflected, XSS.
+- **Rule:** a negative on one class does **not** close the parameter. Enumerate the param's classes from its
+  role, test each, and only then move on. When triaging by endpoint "type", you inherit the author's mental
+  model and miss the bug they didn't think of.
+
 ## Scanner-assisted manual testing
 Use a scanner to triage breadth on requests your intuition flagged — never as a substitute for thinking.
 - **Scan a single request** (active scan) instead of a full crawl to slash scan time and focus effort.

@@ -101,6 +101,32 @@ ledger attribution (3.59 in non-owned 800000's ledger), calibrated, with no-toke
 **Tooling:** still no install. **Target status:** API + legacy surface now exhaustively mapped & tested;
 remaining endpoints are inert (admin writes) or low-value (feedback). High-impact classes all proven.
 
+### Iteration 2 addendum 4 — online-writeup cross-check found bugs I MISSED (2026-06-07, operator request)
+Operator asked me to check public AltoroJ writeups for what I missed. The ZAP testapps list
+(zaproxy.org/docs/testapps/altoroj) is the authoritative J2EE one. Cross-check found **3 confirmed bugs I
+walked past** + 1 endpoint I never discovered:
+- `GET /bank/queryxpath.jsp?query=` **reflected XSS** (attribute-context `"><script>` breakout) — I'd tested
+  this page for **XPath only** and left on the negative.
+- `GET /bank/customize.jsp?lang=` **reflected XSS** (raw in body) — I'd assumed `lang` was cosmetic.
+- `GET /bank/customize.jsp?content=<url>` **open redirect** (`→302` to external host) — I'd tested
+  `content=` for **path-traversal only** and left on the negative.
+- `POST /bank/ccApply` (ZAP-listed SQLi) — endpoint **exists** (405/500), I never found it in my crawl.
+  (`showTransactions` SQLi from ZAP re-checked = true negative here: strict date parsing; ZAP flags it FP too.)
+
+**Root cause (the important lesson): tunnel vision — one vuln-class per endpoint, leave on first negative.**
+I routed by the endpoint's apparent "type" (queryxpath→XPath, customize→traversal) and never tested the
+reflected-XSS / open-redirect sitting in the very same params.
+
+| # | Friction | Fix shipped |
+|---|----------|-------------|
+| 14 | Tested each param for the ONE class its name implied; a negative ended testing of the param, missing XSS/redirect in the same input. | **essential-skills → "One parameter → its FULL applicable class set"** + **recon-mapper → route each candidate to MULTIPLE skills**: any reflected value → also `xss`; any URL/path/file param → traversal **and** open-redirect **and** ssrf; a negative on one class does NOT close the param. |
+| 15 | (process) My completeness workflow's KNOWN-list marked these pages "negative for class X", which can wrongly blacklist them for class Y in the finders. | Noted in `notes.md`: when seeding a sweep, scope negatives to *(endpoint, class)* pairs, never blacklist an endpoint outright. |
+
+**How I could have caught it without the writeup:** the multi-class rule above would have flagged
+`customize.jsp?content=` (a URL/file param → test redirect+SSRF, not just traversal) and every reflected
+`query`/`lang` value (→ test XSS) during routing. Shipped so the next engagement does this by default.
+**Tooling:** still no install — pure methodology gap.
+
 ---
 
 ## Iteration 1 — 2026-06-05/06 · target: demo.testfire.net (AltoroJ, training/accepted-risk-by-design)

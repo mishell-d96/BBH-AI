@@ -22,6 +22,21 @@
 | 6 | API `Authorization` token = `base64(base64(user):base64(pass):sig)` — reversibly embeds cleartext password | **CONFIRMED** (jsmith token → `jsmith`/`demo1234`; admin → `admin`/`admin`) | finding #5 (secondary) |
 | 7 | `POST /api/transfer` **money-movement BOLA** — no source-account ownership check (form `doTransfer` HAS it; API does not) | **CONFIRMED** (jsmith debits non-owned 800000; 3.59 marker in 800000 ledger; controls 401) | `_EXPLOIT/2026-06-07_..._BOLA_api-transfer-source.md` |
 
+### Found via online-writeup cross-check (ZAP testapps list) — I had MISSED these (tunnel vision)
+| # | Candidate | Verdict | Note |
+|---|-----------|---------|------|
+| 8 | `GET /bank/queryxpath.jsp?query=` **reflected XSS** | **CONFIRMED** | input reflected into `value="..."`; `"><script>alert(1)</script>` breaks out. I'd tested this page for XPath only. |
+| 9 | `GET /bank/customize.jsp?lang=` **reflected XSS** | **CONFIRMED** | raw into HTML body: `Current Language: <script>alert(1)</script>`. I'd tested this page for traversal only. |
+| 10 | `GET /bank/customize.jsp?content=<url>` **open redirect** | **CONFIRMED** | `content=https://evil.example/` → `302 Location: https://evil.example/`. I'd tested `content=` for traversal only. |
+| 11 | `POST /bank/ccApply` SQLi (ZAP-listed) | **endpoint exists** (GET 405, empty POST 500) | params not yet enumerated; never discovered in my crawl. |
+| — | `POST /bank/showTransactions` SQLi (ZAP-listed) | **NEGATIVE confirmed** | strict date-format parsing rejects injection (ZAP also marks it a false-positive). |
+
+**Root-cause of the misses (generalizable):** I tested each endpoint for ONE vuln class (queryxpath→XPath,
+customize→traversal) and moved on at the first negative — never testing the *reflected XSS* and *open
+redirect* sitting in the same params. Fix shipped to essential-skills + recon-mapper (test every param for
+its FULL applicable class set; a negative on one class does not close the param). Also: my completeness
+workflow's KNOWN-list marked these pages "negative for class X", which can wrongly blacklist them for class Y.
+
 ### Full API surface (from `/swagger/properties.json`, basePath `/api`) — saved to `api_spec.json`
 `/login` (get,post) · `/account` (get) · `/account/{accountNo}` (get) · `/account/{accountNo}/transactions`
 (get,post) · `/transfer` (post — **BOLA #7**) · `/feedback/submit` (post) · `/feedback/{feedbackId}` (get —

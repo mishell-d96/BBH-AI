@@ -198,6 +198,15 @@ Then **test highest-priority-first**, invoking each chosen skill with its `hando
 inherits the baseline and hypothesis instead of starting cold. Pursue `chain_next` before filing
 isolated low-severity bugs.
 
+**Route each candidate to its FULL applicable class set, not one skill.** A parameter usually admits more
+than one class, and routing to a single "obvious" skill is how bugs get missed. Emit **multiple**
+`chosen skill` entries when the param's role implies several: any **reflected** value → also `xss`; any
+**URL/path/file param** (`content`/`url`/`next`/`redirect`/`file`/`page`/`template`) → `path-traversal` **and**
+`open-redirect` **and** `ssrf` (and `ssti`/`xss` if rendered); any **query-feeding** value → `sql-injection`
+**and** `xss` if reflected. A downstream skill returning a *negative* for its class does **not** close the
+parameter — the other routed classes still get tested. (Real miss on AltoroJ: `customize.jsp?content=` routed
+to traversal only, was actually an open redirect; `queryxpath.jsp?query=` routed to XPath only, was reflected XSS.)
+
 **Seed the coverage tracker:** on first run, copy `../../../.claude/templates/wstg-coverage.md` to
 `$OUTDIR/coverage.md` (replace `<target>`). As each downstream skill runs, mark its WSTG category
 tested / N-A / skipped-with-reason so no category is *silently* dropped (per `CLAUDE.md` → Coverage
