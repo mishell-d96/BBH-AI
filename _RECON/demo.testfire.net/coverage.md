@@ -18,7 +18,7 @@ Tracks what was actually tested vs. silently skipped. Provenance: intentionally-
 | 9 | Weak Cryptography | [N/A] | No crypto-bearing tokens beyond the base64 `AltoroAccounts` blob (covered under Authorization). |
 | 10 | Business Logic | [x] | Transfer money-movement DISCARDED Iter-1 (by-design). Iter-2: cross-account transfer BLOCKED (source-ownership enforced); admin `changePass`/`addUser` are **inert stubs** (200 but no side effect — verified, NOT ATO). |
 | 11 | Client-side | [~] | Reflected XSS covered (cat 7). No CSP. clickjacking/CORS = low value, deprioritized. |
-| 12 | API | [x] | `/api/login` SQLi + `/api/account/{n}` BOLA (Iter-1). Swagger UI present, spec JSON 404. |
+| 12 | API | [x] | Full surface mapped via `/swagger/properties.json` (saved `api_spec.json`). `/api/login` SQLi (bypass + blind extraction), `/api/account/{n}` BOLA, **`/api/transfer` source-ownership BOLA** (finding #7). `/feedback/{id}` auth-gated (no IDOR); `/admin/*` inert. |
 
 ## Deliberately skipped low-value sinks (recorded, not silently dropped)
 - `subscribe.jsp`, `survey_questions.jsp` — newsletter/survey; low impact, no sensitive action.

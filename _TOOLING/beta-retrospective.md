@@ -85,6 +85,22 @@ finding). Both logged to `_EXPLOIT/2026-06-07_..._blindSQLi-cred-extraction_api-
 **Tooling:** still no install — `sqlmap` would have automated this, but a hand oracle was faster to a
 minimal proof and kept the request count tiny + intentional.
 
+### Iteration 2 addendum 3 — full API surface + money-movement BOLA (2026-06-07, operator: "continue")
+Enumerated the **whole** REST surface via `/swagger/properties.json` (validates Iter-1 fix #3: spec-first)
+— found endpoints the earlier passes never touched (`/transfer`, `/feedback/*`, `/admin/*`). New confirmed
+high-impact finding: **`POST /api/transfer` omits the source-account ownership check that the web form
+enforces** → an authenticated low-priv user moves money out of any account. Proven by the unique-marker
+ledger attribution (3.59 in non-owned 800000's ledger), calibrated, with no-token/garbage-token 401 controls.
+
+| # | Friction / insight | Fix shipped |
+|---|--------------------|-------------|
+| 11 | The web form rejected `fromAccount=<non-owned>` ("Originating account is invalid"), which could have made me write off transfer-tampering as safe. The **API path had no such check.** | **access-control-idor → "Cross-channel authorization parity"**: a control enforced in one channel (form) is frequently absent in another (API/mobile/legacy); always replay the same tampering against every channel that performs the action, discovered via Swagger/`action=`/JS. |
+| 12 | (validation) Spec-first (Iter-1 fix #3) paid off — `properties.json` gave exact field names + the full endpoint list in one request, no param guessing. | No edit — confirms the recon-mapper swagger-first rule works. |
+| 13 | (validation) The state-change guardrail caught it again: `{"success":"3.59 transferred..."}` + **unchanged balances** would have read as "inert" — only the **marker in the victim's ledger** confirmed real execution (balances were corrupted overflow noise). | No edit — unique-marker attribution worked exactly as designed. |
+
+**Tooling:** still no install. **Target status:** API + legacy surface now exhaustively mapped & tested;
+remaining endpoints are inert (admin writes) or low-value (feedback). High-impact classes all proven.
+
 ---
 
 ## Iteration 1 — 2026-06-05/06 · target: demo.testfire.net (AltoroJ, training/accepted-risk-by-design)

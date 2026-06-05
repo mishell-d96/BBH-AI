@@ -38,6 +38,15 @@ ffuf -u 'https://target/FUZZ' \
 # -fr login filters reflected login redirects; mc 403 keeps existence-leaking paths.
 ```
 
+## Cross-channel authorization parity (high-yield — a control in one channel ≠ all channels)
+The **same action is often reachable through multiple channels** — web form, REST/GraphQL API, mobile
+backend, legacy endpoint, bulk/import — and the ownership/role check is frequently enforced in only *some*
+of them. When a UI form **rejects** your tampering (e.g. "originating account is invalid"), **don't conclude
+the action is safe** — find the underlying API/alternate endpoint (Swagger/`properties.json`, the form's
+`action=`, JS/mobile traffic) and replay the *same* tampering there. A check present in `doTransfer` (form)
+can be entirely absent in `POST /api/transfer`. Test every channel that performs the action, not just the one
+the happy-flow used. (Real, observed on AltoroJ: form enforces source-account ownership, the REST API does not.)
+
 ## Session-liveness canary (don't mistake an expired session for a result)
 Authenticated sessions expire mid-test. When that happens **every** request to a gated endpoint suddenly
 returns the same `302→/login` (or `401`) — which is easy to misread as "the endpoint got fixed", "SQLi

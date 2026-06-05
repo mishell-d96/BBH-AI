@@ -20,6 +20,13 @@
 | 4 | `GET /bank/showAccount?listAccounts=N` legacy-UI BOLA — low-priv jsmith reads any account | **CONFIRMED** (no server-side ownership check; cookie-tamper not even required) | `_EXPLOIT/2026-06-05_..._BOLA_legacy-showAccount.md` |
 | 5 | `POST /api/login` **blind boolean SQLi → credential extraction** — recovered admin pw="admin" (Derby, table `people`, boolean oracle, calibrated on jsmith) | **CONFIRMED** (escalates the logged auth-bypass to full credential-store disclosure) | `_EXPLOIT/2026-06-07_..._blindSQLi-cred-extraction_api-login.md` |
 | 6 | API `Authorization` token = `base64(base64(user):base64(pass):sig)` — reversibly embeds cleartext password | **CONFIRMED** (jsmith token → `jsmith`/`demo1234`; admin → `admin`/`admin`) | finding #5 (secondary) |
+| 7 | `POST /api/transfer` **money-movement BOLA** — no source-account ownership check (form `doTransfer` HAS it; API does not) | **CONFIRMED** (jsmith debits non-owned 800000; 3.59 marker in 800000 ledger; controls 401) | `_EXPLOIT/2026-06-07_..._BOLA_api-transfer-source.md` |
+
+### Full API surface (from `/swagger/properties.json`, basePath `/api`) — saved to `api_spec.json`
+`/login` (get,post) · `/account` (get) · `/account/{accountNo}` (get) · `/account/{accountNo}/transactions`
+(get,post) · `/transfer` (post — **BOLA #7**) · `/feedback/submit` (post) · `/feedback/{feedbackId}` (get —
+requires auth, 500s by int id; no clean IDOR) · `/admin/addUser` (post — inert, see refuted) ·
+`/admin/changePassword` (post — inert, see refuted) · `/logout` (get).
 
 ### Refuted by side-effect check (canned-200 wins — do NOT report these)
 - **admin `changePass` is an INERT STUB.** Returns HTTP 200, but after "changing" jsmith's password the
