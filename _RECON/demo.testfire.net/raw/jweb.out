@@ -1,8 +1,0 @@
-HTTP/1.1 302 Found
-Server: Apache-Coyote/1.1
-Set-Cookie: JSESSIONID=A85C4B86A17A33333021CB00C4083A39; Path=/; Secure; HttpOnly
-Set-Cookie: AltoroAccounts=ODAwMDAyflNhdmluZ3N+LTkuOTAwMDAwMDk5OTQxNDU1RTMxfDgwMDAwM35DaGVja2luZ345Ljg5ODAwMDEwMDMzOTU1NUUzMXw0NTM5MDgyMDM5Mzk2Mjg4fkNyZWRpdCBDYXJkfi0yLjAwMDAwMDAxNjQ0NjM2MDNFMjh8
-Location: /bank/main.jsp
-Content-Length: 0
-Date: Tue, 02 Jun 2026 18:30:35 GMT
-
