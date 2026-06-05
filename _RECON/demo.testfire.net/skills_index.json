@@ -1,0 +1,366 @@
+{
+  "skills_dir": "/home/kali/Documents/BBH-AI/.claude/skills",
+  "count": 40,
+  "skills": [
+    {
+      "slug": "access-control-idor",
+      "name": "access-control-idor",
+      "description": "Broken access control \u2014 IDOR/BOLA, horizontal & vertical privilege escalation, forced browsing to /admin or privileged functions. Use when requests expose object refs (id/uuid/account/order/user/filename), role/isAdmin flags, multi-step flows, or you can compare two accounts' access.",
+      "invoke": "/access-control-idor",
+      "path": "/home/kali/Documents/BBH-AI/.claude/skills/access-control-idor/SKILL.md",
+      "has_reference": true,
+      "has_cheatsheet": false
+    },
+    {
+      "slug": "api-testing",
+      "name": "api-testing",
+      "description": "REST/JSON API testing \u2014 authz bypass, mass assignment (isAdmin/role), hidden endpoints/params, HTTP method tampering, content-type confusion, server-side parameter pollution (SSPP). Use for REST/JSON/SPA/mobile backends, Swagger/OpenAPI, or pivoting API findings into IDOR/SQLi/broken auth.",
+      "invoke": "/api-testing",
+      "path": "/home/kali/Documents/BBH-AI/.claude/skills/api-testing/SKILL.md",
+      "has_reference": true,
+      "has_cheatsheet": false
+    },
+    {
+      "slug": "authentication",
+      "name": "authentication",
+      "description": "Authentication flaws -> account takeover in login, registration, password reset, 2FA. Use for username enumeration, brute-force/lockout, remember-me cookies, reset tokens, OTP/verification codes, credential stuffing, ATO chains.",
+      "invoke": "/authentication",
+      "path": "/home/kali/Documents/BBH-AI/.claude/skills/authentication/SKILL.md",
+      "has_reference": true,
+      "has_cheatsheet": false
+    },
+    {
+      "slug": "business-logic",
+      "name": "business-logic",
+      "description": "Business/application logic flaws \u2014 abusing legitimate functionality. Use for multi-step workflows (checkout, KYC, reset), price/quantity/discount tampering, negative numbers, rounding, parameter removal, excessive client-side trust, coupon/refund/gift-card abuse, state-machine skipping, replay.",
+      "invoke": "/business-logic",
+      "path": "/home/kali/Documents/BBH-AI/.claude/skills/business-logic/SKILL.md",
+      "has_reference": true,
+      "has_cheatsheet": false
+    },
+    {
+      "slug": "clickjacking",
+      "name": "clickjacking",
+      "description": "Clickjacking / UI redress \u2014 frame a target and overlay invisible UI so a victim's clicks trigger a sensitive action. Use when a framable sensitive action exists AND X-Frame-Options / CSP frame-ancestors is missing. Not for missing-XFO alone with no impactful action.",
+      "invoke": "/clickjacking",
+      "path": "/home/kali/Documents/BBH-AI/.claude/skills/clickjacking/SKILL.md",
+      "has_reference": true,
+      "has_cheatsheet": false
+    },
+    {
+      "slug": "cloud-storage-misconfig",
+      "name": "cloud-storage-misconfig",
+      "description": "Misconfigured cloud storage \u2014 public/world-writable S3, GCS, Azure Blob, and dangling-bucket takeover. Use for s3.amazonaws.com / storage.googleapis.com / blob.core.windows.net URLs, bucket names in JS/HTML, AccessDenied/NoSuchBucket responses, or storage-backed uploads.",
+      "invoke": "/cloud-storage-misconfig",
+      "path": "/home/kali/Documents/BBH-AI/.claude/skills/cloud-storage-misconfig/SKILL.md",
+      "has_reference": true,
+      "has_cheatsheet": false
+    },
+    {
+      "slug": "cors",
+      "name": "cors",
+      "description": "Exploitable CORS misconfig -> cross-origin theft of authenticated data. Use when an endpoint returns sensitive data with Access-Control-Allow-Origin reflecting Origin, ACAO + Access-Control-Allow-Credentials:true, null origin accepted, or a weak origin-whitelist regex.",
+      "invoke": "/cors",
+      "path": "/home/kali/Documents/BBH-AI/.claude/skills/cors/SKILL.md",
+      "has_reference": true,
+      "has_cheatsheet": false
+    },
+    {
+      "slug": "csrf",
+      "name": "csrf",
+      "description": "Cross-Site Request Forgery \u2014 force an authenticated victim's browser into state-changing requests. Use for POST/PUT/DELETE or sensitive GET actions with missing/weak anti-CSRF tokens, SameSite gaps, token not tied to session, method-only checks, or double-submit cookie.",
+      "invoke": "/csrf",
+      "path": "/home/kali/Documents/BBH-AI/.claude/skills/csrf/SKILL.md",
+      "has_reference": true,
+      "has_cheatsheet": false
+    },
+    {
+      "slug": "dependency-confusion",
+      "name": "dependency-confusion",
+      "description": "Dependency confusion / supply chain \u2014 internal package name unclaimed on a public registry. Use when package.json/requirements.txt/pom.xml/Gemfile/nuget.config leaks internal or scoped names (npm @scope, PyPI, Maven, NuGet) or references a private registry/Artifactory/--extra-index-url.",
+      "invoke": "/dependency-confusion",
+      "path": "/home/kali/Documents/BBH-AI/.claude/skills/dependency-confusion/SKILL.md",
+      "has_reference": true,
+      "has_cheatsheet": false
+    },
+    {
+      "slug": "deserialization",
+      "name": "deserialization",
+      "description": "Insecure deserialization -> object injection, priv-esc, gadget-chain RCE. Use when a serialized blob comes from the client: Java (rO0AB / AC ED), PHP (O:8:), .NET (__VIEWSTATE, BinaryFormatter, TypeNameHandling), Python pickle, Ruby Marshal. Tools: ysoserial, phpggc, PHAR.",
+      "invoke": "/deserialization",
+      "path": "/home/kali/Documents/BBH-AI/.claude/skills/deserialization/SKILL.md",
+      "has_reference": true,
+      "has_cheatsheet": false
+    },
+    {
+      "slug": "dom-based",
+      "name": "dom-based",
+      "description": "DOM-based client-side vulns \u2014 trace taint from sources (location.hash/search, document.URL/referrer, postMessage, storage) to sinks (innerHTML, eval, document.write, location, setRequestHeader). Covers DOM XSS, DOM open-redirect, cookie manipulation, web-message, DOM clobbering.",
+      "invoke": "/dom-based",
+      "path": "/home/kali/Documents/BBH-AI/.claude/skills/dom-based/SKILL.md",
+      "has_reference": true,
+      "has_cheatsheet": false
+    },
+    {
+      "slug": "essential-skills",
+      "name": "essential-skills",
+      "description": "Cross-cutting: obfuscate payloads to bypass input filters/WAFs (URL/double-URL/HTML-entity/unicode/hex/octal encoding, SQL CHAR(), layering) and use a scanner to support manual testing. Use when a payload is blocked/filtered/sanitized or a WAF rejects an attack.",
+      "invoke": "/essential-skills",
+      "path": "/home/kali/Documents/BBH-AI/.claude/skills/essential-skills/SKILL.md",
+      "has_reference": true,
+      "has_cheatsheet": false
+    },
+    {
+      "slug": "file-upload",
+      "name": "file-upload",
+      "description": "File upload flaws -> web-shell RCE, validation bypass, stored XSS via uploaded files. Use for any upload feature (avatar, document, image, import), multipart/form-data, Content-Type/extension filters, or SVG/HTML/PHP that may be served. Keywords: web shell, .htaccess, magic bytes, polyglot.",
+      "invoke": "/file-upload",
+      "path": "/home/kali/Documents/BBH-AI/.claude/skills/file-upload/SKILL.md",
+      "has_reference": true,
+      "has_cheatsheet": false
+    },
+    {
+      "slug": "graphql",
+      "name": "graphql",
+      "description": "GraphQL vulns \u2014 introspection schema mapping, access-control/IDOR via object args, exposed admin mutations, argument injection (SQLi), alias rate-limit bypass, batching brute-force, CSRF. Use for /graphql or /api/graphql, __schema/__typename, queries/mutations, batched arrays, suggestions.",
+      "invoke": "/graphql",
+      "path": "/home/kali/Documents/BBH-AI/.claude/skills/graphql/SKILL.md",
+      "has_reference": true,
+      "has_cheatsheet": false
+    },
+    {
+      "slug": "host-header",
+      "name": "host-header",
+      "description": "HTTP Host header attacks -> ATO via password-reset poisoning, routing-based SSRF, web cache poisoning, Host-based auth bypass. Use when the app trusts Host: reset/email links, vhosts, cache keys, proxy routing, absolute URLs. Signals: X-Forwarded-Host, duplicate Host, absolute request line.",
+      "invoke": "/host-header",
+      "path": "/home/kali/Documents/BBH-AI/.claude/skills/host-header/SKILL.md",
+      "has_reference": true,
+      "has_cheatsheet": false
+    },
+    {
+      "slug": "information-disclosure",
+      "name": "information-disclosure",
+      "description": "Unintentional leaks of sensitive data \u2014 secrets, source, PII, internal infra. Use for verbose errors/stack traces, debug pages, robots.txt hints, backup/source files (.bak/.old/.swp/.zip), exposed .git/.svn, source maps (.js.map), version banners, directory listing. Strict anti-noise.",
+      "invoke": "/information-disclosure",
+      "path": "/home/kali/Documents/BBH-AI/.claude/skills/information-disclosure/SKILL.md",
+      "has_reference": true,
+      "has_cheatsheet": false
+    },
+    {
+      "slug": "jwt",
+      "name": "jwt",
+      "description": "JWT attacks \u2014 forge tokens to escalate/bypass auth or take over accounts. Use for eyJ... tokens, alg header, none algorithm, HS256/RS256, jwk/jku/kid params, weak HMAC secret (hashcat), RS256->HS256 confusion, role/admin/sub claims, unenforced signature.",
+      "invoke": "/jwt",
+      "path": "/home/kali/Documents/BBH-AI/.claude/skills/jwt/SKILL.md",
+      "has_reference": true,
+      "has_cheatsheet": false
+    },
+    {
+      "slug": "nosql-injection",
+      "name": "nosql-injection",
+      "description": "NoSQL injection (syntax + operator) in MongoDB/CouchDB-style backends -> auth bypass, data extraction. Use for JSON-bodied APIs, login/filter endpoints, JSON query params; operators $ne/$gt/$in/$regex/$where.",
+      "invoke": "/nosql-injection",
+      "path": "/home/kali/Documents/BBH-AI/.claude/skills/nosql-injection/SKILL.md",
+      "has_reference": true,
+      "has_cheatsheet": false
+    },
+    {
+      "slug": "oauth",
+      "name": "oauth",
+      "description": "OAuth 2.0 / OIDC flaws -> account takeover \u2014 redirect_uri bypass, code/token leakage, missing/weak state (CSRF account linking), implicit-grant forgery, scope flaws, unverified-email ATO. Use for 'Login with Google/Facebook', SSO, redirect_uri/state/code/id_token, /authorize, /token, /userinfo.",
+      "invoke": "/oauth",
+      "path": "/home/kali/Documents/BBH-AI/.claude/skills/oauth/SKILL.md",
+      "has_reference": true,
+      "has_cheatsheet": false
+    },
+    {
+      "slug": "open-redirect",
+      "name": "open-redirect",
+      "description": "Open redirects (server-side 302 Location reflection & DOM location sinks) \u2014 low alone, a force-multiplier (-> OAuth token theft, SSRF whitelist bypass, CSP). Use for URL-shaped params (redirect/redirect_uri/return/returnUrl/next/url/dest/callback/goto), post-login/logout/SSO redirects.",
+      "invoke": "/open-redirect",
+      "path": "/home/kali/Documents/BBH-AI/.claude/skills/open-redirect/SKILL.md",
+      "has_reference": true,
+      "has_cheatsheet": false
+    },
+    {
+      "slug": "os-command-injection",
+      "name": "os-command-injection",
+      "description": "OS command injection (shell injection / RCE) where input feeds an OS command. Use when a param shells out \u2014 ping/traceroute/nslookup, file/image conversion (ImageMagick/ffmpeg), backups, exports, archive extraction. Separators ; | & && || $() backticks; blind via time delay or OAST.",
+      "invoke": "/os-command-injection",
+      "path": "/home/kali/Documents/BBH-AI/.claude/skills/os-command-injection/SKILL.md",
+      "has_reference": true,
+      "has_cheatsheet": false
+    },
+    {
+      "slug": "path-traversal",
+      "name": "path-traversal",
+      "description": "Path traversal / directory traversal (LFI) -> arbitrary file read. Use when a param looks like a filename/path (file/path/doc/template/page/image/download), ../ influences a path, or probing /etc/passwd, win.ini, source/config/credential disclosure.",
+      "invoke": "/path-traversal",
+      "path": "/home/kali/Documents/BBH-AI/.claude/skills/path-traversal/SKILL.md",
+      "has_reference": true,
+      "has_cheatsheet": true
+    },
+    {
+      "slug": "prototype-pollution",
+      "name": "prototype-pollution",
+      "description": "JavaScript prototype pollution -> DOM XSS (client) or RCE/priv-esc (server). Use for __proto__/constructor/prototype keys in JSON/query/hash, recursive merge / Object.assign / lodash merge / $.extend, config-merge patterns, Node/Express gadgets (NODE_OPTIONS, execArgv).",
+      "invoke": "/prototype-pollution",
+      "path": "/home/kali/Documents/BBH-AI/.claude/skills/prototype-pollution/SKILL.md",
+      "has_reference": true,
+      "has_cheatsheet": false
+    },
+    {
+      "slug": "race-conditions",
+      "name": "race-conditions",
+      "description": "Race conditions \u2014 concurrent requests colliding in a TOCTOU window to overrun a limit or skip a state check. Use for 'once only' actions: coupon/gift-card redemption, withdrawal/transfer, OTP/2FA attempt counters, single-use tokens, limit-overrun, double-spend. Single-packet attack.",
+      "invoke": "/race-conditions",
+      "path": "/home/kali/Documents/BBH-AI/.claude/skills/race-conditions/SKILL.md",
+      "has_reference": true,
+      "has_cheatsheet": false
+    },
+    {
+      "slug": "recon",
+      "name": "recon",
+      "description": "Quick, shallow attack-surface sketch \u2014 fast subdomain/content/parameter discovery and tech fingerprinting, no baselining or routing. Use only when the operator wants a fast look ('quick recon', 'enumerate subdomains', 'tech stack'). For a full engagement use recon-mapper.",
+      "invoke": "/recon",
+      "path": "/home/kali/Documents/BBH-AI/.claude/skills/recon/SKILL.md",
+      "has_reference": true,
+      "has_cheatsheet": false
+    },
+    {
+      "slug": "recon-monitor",
+      "name": "recon-monitor",
+      "description": "Continuous surface monitoring of an already-mapped target \u2014 snapshot on a cadence and diff vs the last snapshot, surfacing only what CHANGED (new subdomains, newly-live hosts, new endpoints/params, changed JS, new tech), routed back into recon-mapper. Use to 'monitor <target>', 'watch for new subdomains/endpoints', 'scheduled re-recon'. Needs a recon-mapper baseline first.",
+      "invoke": "/recon-monitor",
+      "path": "/home/kali/Documents/BBH-AI/.claude/skills/recon-monitor/SKILL.md",
+      "has_reference": false,
+      "has_cheatsheet": false
+    },
+    {
+      "slug": "reporting",
+      "name": "reporting",
+      "description": "Draft a clear, reproducible, impact-led vulnerability report from a validated finding. Use when writing up a finding, drafting repro steps, assessing severity/CVSS, duplicate-checking, or before submitting. Covers structure, impact statement, minimal PoC, remediation, fill-in template.",
+      "invoke": "/reporting",
+      "path": "/home/kali/Documents/BBH-AI/.claude/skills/reporting/SKILL.md",
+      "has_reference": true,
+      "has_cheatsheet": false
+    },
+    {
+      "slug": "request-smuggling",
+      "name": "request-smuggling",
+      "description": "HTTP request smuggling (desync) where chained proxies disagree on message boundaries. Use behind a front-end/back-end proxy, CDN, or LB; test CL.TE, TE.CL, TE.TE, HTTP/2 downgrade (H2.CL/H2.TE), CL.0. Covers front-end bypass, victim-request capture, cache poisoning, response queue poisoning.",
+      "invoke": "/request-smuggling",
+      "path": "/home/kali/Documents/BBH-AI/.claude/skills/request-smuggling/SKILL.md",
+      "has_reference": true,
+      "has_cheatsheet": false
+    },
+    {
+      "slug": "saml-sso",
+      "name": "saml-sso",
+      "description": "SAML/SSO flaws -> auth bypass and full ATO. Use for SAMLResponse/SAMLRequest, /saml/acs, /saml/sso, base64 XML assertions, IdP login (Okta/ADFS/Auth0/Keycloak), <saml:Assertion>, <ds:Signature>. Covers XML Signature Wrapping (XSW), signature stripping, key confusion, NameID injection, XXE.",
+      "invoke": "/saml-sso",
+      "path": "/home/kali/Documents/BBH-AI/.claude/skills/saml-sso/SKILL.md",
+      "has_reference": true,
+      "has_cheatsheet": false
+    },
+    {
+      "slug": "secrets-exposure",
+      "name": "secrets-exposure",
+      "description": "Find & validate exposed secrets \u2014 API keys, tokens, cloud creds, private keys \u2014 in client JS, source maps, exposed .git/.svn, config/backup files, public repos. Use for bundled JS/webpack chunks, REACT_APP_/VUE_APP_ vars, .map files, hardcoded AWS/GCP keys, Authorization/Bearer/api_key strings.",
+      "invoke": "/secrets-exposure",
+      "path": "/home/kali/Documents/BBH-AI/.claude/skills/secrets-exposure/SKILL.md",
+      "has_reference": true,
+      "has_cheatsheet": false
+    },
+    {
+      "slug": "sql-injection",
+      "name": "sql-injection",
+      "description": "SQL injection \u2014 detect, confirm, minimally exploit (data exfil, auth bypass). Use when a param feeds SQL (WHERE/ORDER BY/INSERT), DB errors appear (SQL syntax/ORA-/SQLSTATE), login bypass (administrator'--), single-quote/OR 1=1/UNION SELECT; blind boolean/time-based (SLEEP/pg_sleep/WAITFOR), OAST exfil, stacked queries, JSON/XML body, second-order.",
+      "invoke": "/sql-injection",
+      "path": "/home/kali/Documents/BBH-AI/.claude/skills/sql-injection/SKILL.md",
+      "has_reference": true,
+      "has_cheatsheet": true
+    },
+    {
+      "slug": "ssrf",
+      "name": "ssrf",
+      "description": "Server-Side Request Forgery \u2014 coerce the server to request internal/cloud targets. Use when a param takes a url/uri/callback/webhook/redirect/image-fetch/proxy value, or a feature does link previews, remote fetches, PDF/screenshot generation. Signals: 169.254.169.254 metadata, RFC1918, localhost, blind via OAST.",
+      "invoke": "/ssrf",
+      "path": "/home/kali/Documents/BBH-AI/.claude/skills/ssrf/SKILL.md",
+      "has_reference": true,
+      "has_cheatsheet": false
+    },
+    {
+      "slug": "ssti",
+      "name": "ssti",
+      "description": "Server-Side Template Injection -> RCE or file read. Use when input is rendered by a template engine (Jinja2, Twig, Freemarker, Velocity, Smarty, ERB, Handlebars, Pug, Mako), when {{7*7}} or ${7*7} evaluates to 49, or in email templates / preview / name / greeting fields.",
+      "invoke": "/ssti",
+      "path": "/home/kali/Documents/BBH-AI/.claude/skills/ssti/SKILL.md",
+      "has_reference": true,
+      "has_cheatsheet": true
+    },
+    {
+      "slug": "subdomain-takeover",
+      "name": "subdomain-takeover",
+      "description": "Subdomain takeover from dangling DNS. Use when a CNAME points to an unclaimed service (GitHub Pages, S3, Heroku, Azure, Fastly, Shopify, Zendesk, Netlify), or a subdomain returns NXDOMAIN or a service 404 ('no such app', 'no such bucket', 'there isn't a GitHub Pages site here'). Keyword: can-i-take-over-xyz.",
+      "invoke": "/subdomain-takeover",
+      "path": "/home/kali/Documents/BBH-AI/.claude/skills/subdomain-takeover/SKILL.md",
+      "has_reference": true,
+      "has_cheatsheet": false
+    },
+    {
+      "slug": "web-cache-deception",
+      "name": "web-cache-deception",
+      "description": "Web cache deception \u2014 trick a cache into storing a dynamic authenticated response, retrieved unauthenticated to leak PII/tokens. Use when a CDN caches static extensions (.css/.js/.png) AND origin serves dynamic auth content; appending /foo.css or an extra path segment to /account still returns the page; delimiter/path-mapping confusion.",
+      "invoke": "/web-cache-deception",
+      "path": "/home/kali/Documents/BBH-AI/.claude/skills/web-cache-deception/SKILL.md",
+      "has_reference": true,
+      "has_cheatsheet": false
+    },
+    {
+      "slug": "web-cache-poisoning",
+      "name": "web-cache-poisoning",
+      "description": "Web cache poisoning \u2014 make a CDN/cache store a harmful response served to other users. Use when a cache fronts the app (Varnish/Cloudflare/Akamai/Fastly/nginx), responses carry X-Cache/Age/Vary, and unkeyed inputs (X-Forwarded-Host/Scheme/Proto, cookies, unkeyed params) reflect into cacheable output. Always use a cache buster.",
+      "invoke": "/web-cache-poisoning",
+      "path": "/home/kali/Documents/BBH-AI/.claude/skills/web-cache-poisoning/SKILL.md",
+      "has_reference": true,
+      "has_cheatsheet": false
+    },
+    {
+      "slug": "web-llm-attacks",
+      "name": "web-llm-attacks",
+      "description": "Attacks on LLM-integrated web apps \u2014 prompt injection, insecure output handling (-> XSS), excessive agency. Use when the target has an LLM chatbot/assistant/copilot, the LLM calls tools/APIs, reads attacker-controlled data (indirect injection via emails/reviews/profiles), or renders its output unsanitized.",
+      "invoke": "/web-llm-attacks",
+      "path": "/home/kali/Documents/BBH-AI/.claude/skills/web-llm-attacks/SKILL.md",
+      "has_reference": true,
+      "has_cheatsheet": false
+    },
+    {
+      "slug": "websockets",
+      "name": "websockets",
+      "description": "WebSocket attacks \u2014 cross-site WebSocket hijacking (CSWSH), missing handshake Origin/CSRF validation, and input-based injection reaching the backend. Use for ws://wss:// connections, 101 Upgrade handshakes, chat/live/real-time features, cookie-only handshake auth, or message content hitting a sink.",
+      "invoke": "/websockets",
+      "path": "/home/kali/Documents/BBH-AI/.claude/skills/websockets/SKILL.md",
+      "has_reference": true,
+      "has_cheatsheet": false
+    },
+    {
+      "slug": "xss",
+      "name": "xss",
+      "description": "Cross-site scripting \u2014 reflected, stored, and DOM XSS with context breakouts, CSP-aware. Use when user input is reflected or stored into HTML/attribute/JS/URL contexts and you can prove script execution; includes filter/sanitizer breakouts and a payload cheatsheet.",
+      "invoke": "/xss",
+      "path": "/home/kali/Documents/BBH-AI/.claude/skills/xss/SKILL.md",
+      "has_reference": true,
+      "has_cheatsheet": true
+    },
+    {
+      "slug": "xxe-injection",
+      "name": "xxe-injection",
+      "description": "XML External Entity (XXE) injection -> server-side file read, SSRF (incl. cloud metadata), blind/OOB exfil. Use when a request has an XML/SOAP body, Content-Type application/xml, a DOCTYPE/<!ENTITY>, SVG/DOCX/XLSX/PDF uploads, or SAML.",
+      "invoke": "/xxe-injection",
+      "path": "/home/kali/Documents/BBH-AI/.claude/skills/xxe-injection/SKILL.md",
+      "has_reference": true,
+      "has_cheatsheet": false
+    }
+  ]
+}

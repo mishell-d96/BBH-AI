@@ -1,0 +1,56 @@
+{
+  "note": "httpx failed in active_map.sh; surface rebuilt manually via curl crawl + swagger spec (/swagger/properties.json). nmap/ffuf/nuclei raw under raw/.",
+  "hosts": [
+    {
+      "host": "demo.testfire.net",
+      "ip": "65.61.137.117",
+      "tech": ["Apache Tomcat/Coyote JSP engine", "AltoroJ (AltoroMutual demo bank)"],
+      "waf": "detected (nuclei waf-detect)",
+      "ports": [
+        {"port": 80, "state": "open", "service": "http"},
+        {"port": 443, "state": "open", "service": "http/tls"},
+        {"port": 8080, "state": "open", "service": "http"},
+        {"port": 8443, "state": "closed"}
+      ]
+    }
+  ],
+  "endpoints": [
+    {"url": "/doLogin", "methods": ["POST"], "params": ["uid", "passw", "btnSubmit"], "auth": "none", "source": "login.jsp form", "note": "web login -> sets session cookie, 302"},
+    {"url": "/login.jsp", "methods": ["GET"], "params": [], "auth": "none", "source": "crawl", "note": "HTML comment leaks SiteOps phone for admin login"},
+    {"url": "/index.jsp", "methods": ["GET"], "params": ["content"], "auth": "none", "source": "crawl", "note": "content= loads .htm templates -> path-traversal/LFI candidate"},
+    {"url": "/search.jsp", "methods": ["GET"], "params": ["query"], "auth": "none", "source": "form", "note": "reflected XSS candidate"},
+    {"url": "/feedback.jsp", "methods": ["GET", "POST"], "params": ["name", "email_addr", "subject", "comments"], "auth": "none", "source": "crawl", "note": "stored XSS / SQLi candidate"},
+    {"url": "/status_check.jsp", "methods": ["GET"], "params": [], "auth": "none", "source": "crawl"},
+    {"url": "/subscribe.jsp", "methods": ["GET", "POST"], "params": ["txtEmail"], "auth": "none", "source": "crawl"},
+    {"url": "/survey_questions.jsp", "methods": ["GET"], "params": [], "auth": "none", "source": "crawl"},
+    {"url": "/admin", "methods": ["GET"], "params": [], "auth": "redirect", "source": "ffuf", "note": "302"},
+    {"url": "/bank/", "methods": ["GET"], "params": [], "auth": "session", "source": "ffuf", "note": "302 -> login.jsp; authenticated banking area"},
+    {"url": "/api/login", "methods": ["GET", "POST"], "params": ["username", "password"], "auth": "none", "source": "swagger", "note": "POST returns base64 token jsmith:base64(pw):sig; SQLi candidate"},
+    {"url": "/api/account", "methods": ["GET"], "params": [], "auth": "bearer", "source": "swagger", "note": "lists caller's accounts"},
+    {"url": "/api/account/{accountNo}", "methods": ["GET"], "params": ["accountNo"], "auth": "bearer", "source": "swagger", "note": "TOP CANDIDATE: BOLA/IDOR; account IDs sequential (800002,800003)"},
+    {"url": "/api/account/{accountNo}/transactions", "methods": ["GET", "POST"], "params": ["accountNo"], "auth": "bearer", "source": "swagger", "note": "BOLA on transaction history"},
+    {"url": "/api/transfer", "methods": ["POST"], "params": [], "auth": "bearer", "source": "swagger", "note": "money movement; logic/IDOR candidate"},
+    {"url": "/api/feedback/submit", "methods": ["POST"], "params": [], "auth": "unknown", "source": "swagger"},
+    {"url": "/api/feedback/{feedbackId}", "methods": ["GET"], "params": ["feedbackId"], "auth": "unknown", "source": "swagger", "note": "BOLA on feedback messages"},
+    {"url": "/api/admin/addUser", "methods": ["POST"], "params": [], "auth": "unknown", "source": "swagger", "note": "VERTICAL PRIV-ESC candidate: admin fn reachable by low-priv?"},
+    {"url": "/api/admin/changePassword", "methods": ["POST"], "params": [], "auth": "unknown", "source": "swagger", "note": "VERTICAL PRIV-ESC / ATO candidate"},
+    {"url": "/api/logout", "methods": ["GET"], "params": [], "auth": "bearer", "source": "swagger"},
+    {"url": "/swagger/index.html", "methods": ["GET"], "params": [], "auth": "none", "source": "nuclei", "note": "Swagger UI; spec at /swagger/properties.json (publicly readable)"}
+  ],
+  "js_files": [],
+  "secrets_leads": [
+    "login.jsp HTML comment: 'To get the latest admin login, please contact SiteOps at 415-555-6159'",
+    "/swagger/properties.json publicly readable -> full API contract incl. admin endpoints"
+  ],
+  "auth_surface": [
+    "web: POST /doLogin (uid/passw) -> session cookie",
+    "api: POST /api/login (JSON username/password) -> base64 Authorization token = base64(user:base64(pass):sig)",
+    "test creds: jsmith/demo1234 (AltoroMutual published demo creds); admin login hinted in HTML comment",
+    "jsmith owns: 800002 Savings, 800003 Checking, 4539082039396288 CreditCard"
+  ],
+  "manual_supplement_required": [
+    "authenticated /bank/* web area (re-crawl per role with session)",
+    "POST bodies for /api/transfer, /api/admin/* (baseline read-only)",
+    "feedback.jsp stored-content rendering path"
+  ]
+}

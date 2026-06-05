@@ -1,0 +1,8 @@
+; A
+65.61.137.117
+; AAAA
+; CNAME
+; MX
+; TXT
+; NS
+; SOA

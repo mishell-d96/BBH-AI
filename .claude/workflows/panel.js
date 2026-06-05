@@ -7,6 +7,16 @@ export const meta = {
   ],
 }
 
+// ---- How to run this gate -----------------------------------------------------
+// This is a Workflow script (top-level `return`, harness-provided globals: agent,
+// phase, parallel, args, log). It runs ONLY via the main-loop Workflow tool —
+// `node panel.js` will throw "Illegal return statement", and workflow SUBAGENTS
+// cannot invoke the Workflow tool. So the PANEL GATE is a MAIN-LOOP responsibility:
+// the main agent runs it before logging a scoped-target finding. If a subagent
+// produces a candidate, it returns the evidence upward and the main loop panels it.
+// (A subagent that must self-judge should apply the Advocate -> Skeptic -> Verdict
+// rubric below manually; that is not a substitute for the real gate.)
+//
 // ---- Inputs (override via the Workflow `args` value) -------------------------
 // args may be:
 //   - a string                       -> the topic/finding to judge
@@ -16,7 +26,18 @@ export const meta = {
 // (request/response, executed PoC + its REAL output, affected in-scope URL,
 // relevant _RECON excerpts) into `cfg.evidence` — the panel judges real material,
 // it cannot run anything itself.
-const cfg = (typeof args === 'string') ? { topic: args } : (args ?? {})
+// When invoked via the Skill tool, an object passed as `args` may arrive
+// JSON-stringified; parse it back so {topic, evidence, rebuttals} survive.
+function _parseArgs(a) {
+  if (a && typeof a === 'object') return a
+  if (typeof a === 'string') {
+    const s = a.trim()
+    if (s.startsWith('{')) { try { const o = JSON.parse(s); if (o && typeof o === 'object') return o } catch (e) {} }
+    return { topic: a }
+  }
+  return {}
+}
+const cfg = _parseArgs(args)
 
 const TOPIC = cfg.topic
   ?? 'Is the candidate finding a real, reportable, high-impact vulnerability? Prove it or discard it.'

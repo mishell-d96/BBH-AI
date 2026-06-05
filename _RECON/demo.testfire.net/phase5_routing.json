@@ -1,0 +1,222 @@
+{
+  "count": 9,
+  "gaps": 0,
+  "threshold": 2,
+  "routes": [
+    {
+      "id": "C1",
+      "endpoint": "https://demo.testfire.net/api/account/{accountNo}",
+      "method": "GET",
+      "priority": 100,
+      "hypothesis": "Authenticated read of full balance + credits/debits + transactions; account IDs sequential (jsmith=800002,800003). No object-ownership check apparent in spec.",
+      "vuln_class": "access-control / IDOR / BOLA",
+      "baseline_request": "GET /api/account/800003  Authorization: <jsmith token>",
+      "baseline_response": "200 {accountId:800003, balance, credits[], debits[], last_10_transactions[]}",
+      "handoff_context": {
+        "influenceable_params": [
+          "accountNo"
+        ],
+        "success_signal": "200 + full balance/credit/debit/transaction detail",
+        "chain_potential": "read any account -> enumerate all customers' balances/PII; pair with /transfer for money movement"
+      },
+      "skill": "access-control-idor",
+      "invoke": "/access-control-idor",
+      "confidence": 14,
+      "gap": false,
+      "chain_next": [
+        "authentication",
+        "reporting"
+      ]
+    },
+    {
+      "id": "C2",
+      "endpoint": "https://demo.testfire.net/api/account/{accountNo}/transactions",
+      "method": "GET",
+      "priority": 80,
+      "hypothesis": "Same sequential-id endpoint exposes per-account transaction history.",
+      "vuln_class": "access-control / IDOR / BOLA",
+      "baseline_request": "GET /api/account/800003  Authorization: <jsmith token>",
+      "baseline_response": "200 {accountId:800003, balance, credits[], debits[], last_10_transactions[]}",
+      "handoff_context": {
+        "influenceable_params": [
+          "accountNo"
+        ],
+        "success_signal": "200 + full balance/credit/debit/transaction detail",
+        "chain_potential": "full transaction history of arbitrary customers"
+      },
+      "skill": "access-control-idor",
+      "invoke": "/access-control-idor",
+      "confidence": 14,
+      "gap": false,
+      "chain_next": [
+        "authentication",
+        "reporting"
+      ]
+    },
+    {
+      "id": "C5",
+      "endpoint": "https://demo.testfire.net/api/login",
+      "method": "POST",
+      "priority": 80,
+      "hypothesis": "Classic AltoroMutual login; username reflected into token. SQLi auth-bypass historically present.",
+      "vuln_class": "sql-injection / auth bypass",
+      "baseline_request": "POST /api/login  Content-Type: application/json  {\"username\":\"jsmith\",\"password\":\"demo1234\"}",
+      "baseline_response": "200 {\"Authorization\":\"YW5OdGFYUm86WkdWdGJ6RXlNelE9Oj8WZn8rPw==\",\"success\":\"jsmith is now logged in\"}",
+      "handoff_context": {
+        "influenceable_params": [
+          "username",
+          "password"
+        ],
+        "success_signal": "200 + Authorization token",
+        "chain_potential": "auth bypass -> session without creds; data exfil via UNION"
+      },
+      "skill": "sql-injection",
+      "invoke": "/sql-injection",
+      "confidence": 13,
+      "gap": false,
+      "chain_next": [
+        "authentication"
+      ]
+    },
+    {
+      "id": "C6",
+      "endpoint": "https://demo.testfire.net/index.jsp?content=",
+      "method": "GET",
+      "priority": 64,
+      "hypothesis": "content= loads .htm templates from disk; classic path-traversal/LFI shape.",
+      "vuln_class": "path-traversal / LFI",
+      "baseline_request": null,
+      "baseline_response": null,
+      "handoff_context": {
+        "influenceable_params": [],
+        "success_signal": null,
+        "chain_potential": "read server files / source / config"
+      },
+      "skill": "path-traversal",
+      "invoke": "/path-traversal",
+      "confidence": 10,
+      "gap": false,
+      "chain_next": []
+    },
+    {
+      "id": "C3",
+      "endpoint": "https://demo.testfire.net/api/admin/addUser",
+      "method": "POST",
+      "priority": 60,
+      "hypothesis": "Admin endpoint published in public swagger; reachability by a low-priv (jsmith) token unverified.",
+      "vuln_class": "access-control / vertical privilege escalation",
+      "baseline_request": "POST /api/login  Content-Type: application/json  {\"username\":\"jsmith\",\"password\":\"demo1234\"}",
+      "baseline_response": "200 {\"Authorization\":\"YW5OdGFYUm86WkdWdGJ6RXlNelE9Oj8WZn8rPw==\",\"success\":\"jsmith is now logged in\"}",
+      "handoff_context": {
+        "influenceable_params": [
+          "username",
+          "password"
+        ],
+        "success_signal": "200 + Authorization token",
+        "chain_potential": "create attacker admin account -> full platform compromise"
+      },
+      "skill": "access-control-idor",
+      "invoke": "/access-control-idor",
+      "confidence": 12,
+      "gap": false,
+      "chain_next": [
+        "authentication",
+        "reporting"
+      ]
+    },
+    {
+      "id": "C4",
+      "endpoint": "https://demo.testfire.net/api/admin/changePassword",
+      "method": "POST",
+      "priority": 60,
+      "hypothesis": "Admin password-change endpoint in public swagger; authz unverified.",
+      "vuln_class": "access-control / ATO",
+      "baseline_request": "POST /api/login  Content-Type: application/json  {\"username\":\"jsmith\",\"password\":\"demo1234\"}",
+      "baseline_response": "200 {\"Authorization\":\"YW5OdGFYUm86WkdWdGJ6RXlNelE9Oj8WZn8rPw==\",\"success\":\"jsmith is now logged in\"}",
+      "handoff_context": {
+        "influenceable_params": [
+          "username",
+          "password"
+        ],
+        "success_signal": "200 + Authorization token",
+        "chain_potential": "reset arbitrary user password -> account takeover"
+      },
+      "skill": "access-control-idor",
+      "invoke": "/access-control-idor",
+      "confidence": 9,
+      "gap": false,
+      "chain_next": [
+        "authentication",
+        "reporting"
+      ]
+    },
+    {
+      "id": "C8",
+      "endpoint": "https://demo.testfire.net/search.jsp?query=",
+      "method": "GET",
+      "priority": 32,
+      "hypothesis": "query reflected; reflected XSS candidate.",
+      "vuln_class": "xss (reflected)",
+      "baseline_request": null,
+      "baseline_response": null,
+      "handoff_context": {
+        "influenceable_params": [],
+        "success_signal": null,
+        "chain_potential": "low alone; session theft if chained"
+      },
+      "skill": "xss",
+      "invoke": "/xss",
+      "confidence": 8,
+      "gap": false,
+      "chain_next": [
+        "csrf",
+        "access-control-idor"
+      ]
+    },
+    {
+      "id": "C7",
+      "endpoint": "https://demo.testfire.net/api/feedback/{feedbackId}",
+      "method": "GET",
+      "priority": 27,
+      "hypothesis": "Numeric feedbackId object reference; cross-user message read candidate.",
+      "vuln_class": "access-control / IDOR",
+      "baseline_request": null,
+      "baseline_response": null,
+      "handoff_context": {
+        "influenceable_params": [],
+        "success_signal": null,
+        "chain_potential": "read other users' feedback/PII"
+      },
+      "skill": "access-control-idor",
+      "invoke": "/access-control-idor",
+      "confidence": 14,
+      "gap": false,
+      "chain_next": [
+        "authentication",
+        "reporting"
+      ]
+    },
+    {
+      "id": "C9",
+      "endpoint": "https://demo.testfire.net/feedback.jsp",
+      "method": "POST",
+      "priority": 27,
+      "hypothesis": "comments field stored + rendered; stored XSS / SQLi candidate.",
+      "vuln_class": "xss (stored) / sql-injection",
+      "baseline_request": null,
+      "baseline_response": null,
+      "handoff_context": {
+        "influenceable_params": [],
+        "success_signal": null,
+        "chain_potential": "stored XSS hitting admin viewing feedback"
+      },
+      "skill": "sql-injection",
+      "invoke": "/sql-injection",
+      "confidence": 10,
+      "gap": false,
+      "chain_next": [
+        "authentication"
+      ]
+    }
+  ]
+}

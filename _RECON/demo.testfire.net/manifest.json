@@ -1,0 +1,15 @@
+{
+  "target": "demo.testfire.net",
+  "created": "2026-06-02T18:04:41Z",
+  "updated": "2026-06-02T18:15:45Z",
+  "outdir": "./_RECON/demo.testfire.net",
+  "phases": {
+    "phase0_scope": "running",
+    "phase1_passive": "done",
+    "phase2_active": "done",
+    "phase3_happy": "pending",
+    "phase4_priority": "pending",
+    "phase5_routing": "pending",
+    "report": "done"
+  }
+}

@@ -1,0 +1,55 @@
+[
+  {"id":"C1","endpoint":"https://demo.testfire.net/api/account/{accountNo}","method":"GET",
+   "evidence":"Authenticated read of full balance + credits/debits + transactions; account IDs sequential (jsmith=800002,800003). No object-ownership check apparent in spec.",
+   "vuln_class":"access-control / IDOR / BOLA","signals":["accountNo","bearer","sequential-id","financial-pii"],
+   "baseline_ref":"api-account-detail-baseline","likelihood":5,"impact":5,"exposure":4,"priority":100,
+   "chain_potential":"read any account -> enumerate all customers' balances/PII; pair with /transfer for money movement"},
+
+  {"id":"C2","endpoint":"https://demo.testfire.net/api/account/{accountNo}/transactions","method":"GET",
+   "evidence":"Same sequential-id endpoint exposes per-account transaction history.",
+   "vuln_class":"access-control / IDOR / BOLA","signals":["accountNo","bearer","transactions"],
+   "baseline_ref":"api-account-detail-baseline","likelihood":5,"impact":4,"exposure":4,"priority":80,
+   "chain_potential":"full transaction history of arbitrary customers"},
+
+  {"id":"C3","endpoint":"https://demo.testfire.net/api/admin/addUser","method":"POST",
+   "evidence":"Admin endpoint published in public swagger; reachability by a low-priv (jsmith) token unverified.",
+   "vuln_class":"access-control / vertical privilege escalation","signals":["admin","addUser","bearer"],
+   "baseline_ref":"api-login","likelihood":4,"impact":5,"exposure":3,"priority":60,
+   "chain_potential":"create attacker admin account -> full platform compromise"},
+
+  {"id":"C4","endpoint":"https://demo.testfire.net/api/admin/changePassword","method":"POST",
+   "evidence":"Admin password-change endpoint in public swagger; authz unverified.",
+   "vuln_class":"access-control / ATO","signals":["admin","changePassword","bearer"],
+   "baseline_ref":"api-login","likelihood":4,"impact":5,"exposure":3,"priority":60,
+   "chain_potential":"reset arbitrary user password -> account takeover"},
+
+  {"id":"C5","endpoint":"https://demo.testfire.net/api/login","method":"POST",
+   "evidence":"Classic AltoroMutual login; username reflected into token. SQLi auth-bypass historically present.",
+   "vuln_class":"sql-injection / auth bypass","signals":["username","password","login","sqli"],
+   "baseline_ref":"api-login","likelihood":4,"impact":5,"exposure":4,"priority":80,
+   "chain_potential":"auth bypass -> session without creds; data exfil via UNION"},
+
+  {"id":"C6","endpoint":"https://demo.testfire.net/index.jsp?content=","method":"GET",
+   "evidence":"content= loads .htm templates from disk; classic path-traversal/LFI shape.",
+   "vuln_class":"path-traversal / LFI","signals":["content","file","include","jsp"],
+   "baseline_ref":null,"likelihood":4,"impact":4,"exposure":4,"priority":64,
+   "chain_potential":"read server files / source / config"},
+
+  {"id":"C7","endpoint":"https://demo.testfire.net/api/feedback/{feedbackId}","method":"GET",
+   "evidence":"Numeric feedbackId object reference; cross-user message read candidate.",
+   "vuln_class":"access-control / IDOR","signals":["feedbackId","idor"],
+   "baseline_ref":null,"likelihood":3,"impact":3,"exposure":3,"priority":27,
+   "chain_potential":"read other users' feedback/PII"},
+
+  {"id":"C8","endpoint":"https://demo.testfire.net/search.jsp?query=","method":"GET",
+   "evidence":"query reflected; reflected XSS candidate.",
+   "vuln_class":"xss (reflected)","signals":["query","reflect","xss"],
+   "baseline_ref":null,"likelihood":4,"impact":2,"exposure":4,"priority":32,
+   "chain_potential":"low alone; session theft if chained"},
+
+  {"id":"C9","endpoint":"https://demo.testfire.net/feedback.jsp","method":"POST",
+   "evidence":"comments field stored + rendered; stored XSS / SQLi candidate.",
+   "vuln_class":"xss (stored) / sql-injection","signals":["comments","stored","xss","sqli"],
+   "baseline_ref":null,"likelihood":3,"impact":3,"exposure":3,"priority":27,
+   "chain_potential":"stored XSS hitting admin viewing feedback"}
+]

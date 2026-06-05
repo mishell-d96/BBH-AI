@@ -1,0 +1,20 @@
+{
+  "in_scope_rules": [
+    "*.demo.testfire.net",
+    "demo.testfire.net"
+  ],
+  "out_of_scope_rules": [],
+  "scope_sources": [
+    "/home/kali/Documents/BBH-AI/scope/README.md",
+    "/home/kali/Documents/BBH-AI/scope/scope.md"
+  ],
+  "verdicts": [
+    {
+      "target": "demo.testfire.net",
+      "host": "demo.testfire.net",
+      "in_scope": true,
+      "reason": "matched in-scope rule"
+    }
+  ],
+  "excluded": []
+}

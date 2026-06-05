@@ -1,0 +1,7 @@
+{
+  "target": "demo.testfire.net",
+  "hosts": [],
+  "whois_file": "raw/whois.txt",
+  "dns_file": "raw/dns.txt",
+  "note": "Re-run scope_guard.py over every host; set in_scope and drop out-of-scope to scope.json.excluded."
+}
