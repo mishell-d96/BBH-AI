@@ -70,6 +70,21 @@ Drove the full **authenticated** surface (legacy bank app) that the broad pass h
 
 **Tooling:** again **no install** — the gaps were technique/discipline, not missing binaries.
 
+### Iteration 2 addendum 2 — SQLi data-extraction escalation (2026-06-07, operator: "continue")
+Escalated the proven `/api/login` auth-bypass into **boolean-blind credential extraction** (recovered
+admin's password `admin`; DB = Apache Derby, table `people`). Independently cross-checked: the API token
+decodes to `base64(user):base64(pass):sig` — it **reversibly embeds the cleartext password** (secondary
+finding). Both logged to `_EXPLOIT/2026-06-07_..._blindSQLi-cred-extraction_api-login.md`.
+
+| # | Friction (where I was slow/wrong) | Fix shipped |
+|---|-----------------------------------|-------------|
+| 9 | Burned ~30 requests on an **`ASCII()` binary-search** before realizing **Apache Derby has no `ASCII()`** — every probe errored → read as FALSE → "extracted" all-spaces garbage. Only the calibration-against-known step caught it. | **sql-injection → blind extraction**: fingerprint the engine's string funcs FIRST (`ASCII`/`SUBSTRING` not universal; Derby uses `SUBSTR`, no `ASCII`); **calibrate the oracle against a KNOWN value** before trusting output; an all-identical result column = broken oracle, not data. |
+| 10 | (validation) the **custom-opaque-tokens** decode ladder immediately revealed the token embeds creds. | No edit — skill worked as intended; logged as a validation win. |
+
+**Discipline held:** extracted ONE 5-char password to prove the primitive, then stopped (no bulk dump).
+**Tooling:** still no install — `sqlmap` would have automated this, but a hand oracle was faster to a
+minimal proof and kept the request count tiny + intentional.
+
 ---
 
 ## Iteration 1 — 2026-06-05/06 · target: demo.testfire.net (AltoroJ, training/accepted-risk-by-design)

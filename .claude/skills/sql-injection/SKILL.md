@@ -37,7 +37,10 @@ Run a quiet control between probes; one slow response is not proof — require a
 3. Extract — `' UNION SELECT username, password FROM users--`. Pack multiple values into one string column via DB concat (Oracle `||`, MSSQL `+`, MySQL `CONCAT()`).
 4. Recon first — version (`@@version` / `v$version` / `version()`), then `information_schema.tables` / `.columns` (Oracle: `all_tables` / `all_tab_columns`).
 
-**Blind:**
+**Blind — fingerprint the engine, then calibrate the oracle BEFORE extracting (saves dozens of wasted requests):**
+- **Fingerprint string functions first.** `SUBSTRING`/`ASCII`/`MID`/`LENGTH` are NOT universal — e.g. **Apache Derby has no `ASCII()`** and uses `SUBSTR`; Oracle uses `SUBSTR`; MSSQL uses `SUBSTRING`+`ASCII`. Picking the wrong function makes every probe silently FALSE (the query errors → reads as "condition false") and you "extract" garbage (all spaces / all same char). Confirm the function works (`... AND SUBSTR(col,1,1) IS NOT NULL --` → expected TRUE) before looping.
+- **Calibrate against a KNOWN value.** Run the extraction technique on a row whose value you already know (your own account's password, a public field) — the first char must match. Only trust extracted output once the calibration char is correct. An all-identical result column = broken function/oracle, not real data.
+- **Don't binary-search on `ASCII()` if the DB lacks it** — fall back to direct charset equality `SUBSTR(col,pos,1)='c'`.
 - Boolean — extract char-by-char with `SUBSTRING((SELECT password FROM users WHERE username='administrator'),1,1)='s`.
 - Conditional error — `... AND (SELECT CASE WHEN (cond) THEN 1/0 ELSE 'a' END)='a` (divide-by-zero only when true).
 - Time — wrap the condition in a conditional delay (see cheatsheet.md per DB).

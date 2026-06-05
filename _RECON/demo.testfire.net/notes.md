@@ -18,6 +18,8 @@
 | 2 | `search.jsp?query=` reflected XSS (raw HTML body, no CSP) | **CONFIRMED** (same class as logged `/sendFeedback` XSS — noted, not re-logged) | this file |
 | 3 | `AltoroAccounts` cookie = client-side-trusted authz (tamperable account list) | **CONFIRMED primitive** (folded into finding #1 + skill) | finding #1 |
 | 4 | `GET /bank/showAccount?listAccounts=N` legacy-UI BOLA — low-priv jsmith reads any account | **CONFIRMED** (no server-side ownership check; cookie-tamper not even required) | `_EXPLOIT/2026-06-05_..._BOLA_legacy-showAccount.md` |
+| 5 | `POST /api/login` **blind boolean SQLi → credential extraction** — recovered admin pw="admin" (Derby, table `people`, boolean oracle, calibrated on jsmith) | **CONFIRMED** (escalates the logged auth-bypass to full credential-store disclosure) | `_EXPLOIT/2026-06-07_..._blindSQLi-cred-extraction_api-login.md` |
+| 6 | API `Authorization` token = `base64(base64(user):base64(pass):sig)` — reversibly embeds cleartext password | **CONFIRMED** (jsmith token → `jsmith`/`demo1234`; admin → `admin`/`admin`) | finding #5 (secondary) |
 
 ### Refuted by side-effect check (canned-200 wins — do NOT report these)
 - **admin `changePass` is an INERT STUB.** Returns HTTP 200, but after "changing" jsmith's password the

@@ -12,7 +12,7 @@ Tracks what was actually tested vs. silently skipped. Provenance: intentionally-
 | 3 | Identity Management | [~] | `admin` user + low-priv (`jsmith`) confirmed via SQLi. Registration not deeply tested (low value on demo). |
 | 4 | Authentication | [x] | **SQLi auth bypass on BOTH `/api/login` (Iter-1) AND `/doLogin`→Admin (Iter-2).** Highest-impact category, fully exercised. |
 | 5 | Authorization | [x] | API BOLA `/api/account/{n}` (Iter-1) + **legacy-UI BOLA `/bank/showAccount?listAccounts=N`** (Iter-2, jsmith reads any account); `AltoroAccounts` client-trusted cookie; admin forced-browse gated for anon (302). doTransfer source-ownership ENFORCED (negative). |
-| 6 | Session Management | [skip] | JSESSIONID Secure+HttpOnly. CSRF/session-fixation = low-value on this demo; deprioritized for impact. |
+| 6 | Session Management | [~] | JSESSIONID Secure+HttpOnly. **API `Authorization` token reversibly embeds cleartext password** (`base64(user):base64(pass):sig`) — credential exposure (finding #6). CSRF/session-fixation deprioritized. |
 | 7 | Input Validation | [x] | Reflected XSS `/sendFeedback` + `search.jsp?query=`. SQLi: `/api/login` + `/doLogin`. **Negatives:** queryxpath XPath (exceptions swallowed), listAccounts (int-cast), showTransactions dates (date-validated). |
 | 8 | Error Handling | [x] | Verbose SQL/NumberFormat 500 stack traces (info-disclosure noise; used as a signal, not reported). |
 | 9 | Weak Cryptography | [N/A] | No crypto-bearing tokens beyond the base64 `AltoroAccounts` blob (covered under Authorization). |
