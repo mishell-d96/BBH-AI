@@ -5,6 +5,40 @@ worked. Driven by real friction from executed engagements, not speculation. Newe
 
 ---
 
+## Iteration 3 — 2026-06-07 · target: pentest-ground.com :5013 DVGA + :4280 DVWA (training/accepted-risk-by-design)
+
+**Context:** new scope = two `host:PORT` assets. Map-first, then operator picked a targeted methodology drill,
+then "find all vulnerabilities", then an online-writeup cross-check + fold-back. No payable findings by design.
+
+### What the engagement produced (methodology validation)
+- **DVGA :5013 (GraphQL, unauth):** introspection-disabled bypass via field-suggestion harvesting → BOLA
+  (private pastes) → **unauth RCE** (`importPaste` host injection) + SSRF; stored XSS; GraphQL CSRF
+  (form-urlencoded); batching/alias rate-limit bypass; userlist disclosure; `systemDebug` ps output.
+- **DVWA :4280 (low):** RCE ×2 (`exec` ; `upload` webshell), LFI, reflected+DOM XSS, open redirect, weak
+  (sequential) session id, weak CSP, CSRF (mechanism), verbose-error info disclosure. DB-backed modules
+  blocked by a broken shared instance.
+- **Hygiene:** every artifact I created (DVWA webshell, DVGA test pastes 13/14) deleted + verified gone.
+
+### Friction observed → improvement shipped (all generally applicable)
+| # | Friction (where I was slow/wrong) | Fix shipped |
+|---|-----------------------------------|-------------|
+| 1 | Called the GraphQL schema "mapped" after recovering field *names* — missed the SQLi in `pastes(filter:)` (tested `search` instead; never enumerated `pastes`' args). | **graphql → "Map the schema COMPLETELY: fields AND ARGUMENTS"** — brute an arg-name wordlist; a coercion error (not "Unknown argument") = real arg. + recon-mapper Phase 2 GraphQL arg-enumeration step. |
+| 2 | Missed `systemDiagnostics` (2nd OS-cmd-injection) — probed it only on the **mutation** root; it's a **query**. | **graphql → probe every guessed field on ALL roots (query/mutation/subscription).** |
+| 3 | Found `me` and the login `accessToken` but never decoded the token or tested `me(token:)` for JWT forgery. | **graphql → returned auth tokens are a finding surface**: decode + route to `/jwt`+`/custom-opaque-tokens`; identity-claim args (`me(token:)`) = forgery candidates. recon-mapper tags login-returned tokens for jwt. |
+| 4 | Enumerated `uploadPaste` mutation but never exercised its `filename` arbitrary-file-write sink. | **graphql → mutation file/path/filename args → path-traversal / arbitrary write** (added to exploitation + recon arg-role tagging). |
+| 5 | Proved batching/alias acceptance but skipped the recursion/field-dup/circular-fragment/resource-intensive DoS classes. | **graphql → DoS class checklist** (demonstrate acceptance + a cost delta; never flood a shared/real target). |
+| 6 | Marked DVWA sqli/brute/stored-XSS "environment-blocked" (broken DB) though I held **www-data RCE** and could have seeded the schema DVWA ships. | **durable memory `use-achieved-primitive-to-unblock-demo`** — use a held primitive to establish a missing precondition before declaring blocked (in-scope, non-destructive, clean up). |
+| 7 | (validation) Held `host:PORT` scope discipline — no nmap top-ports / no other-port or subdomain contact. | No edit — new memory `host-port-scope-discipline` worked. |
+
+**How I could have caught it without the writeup:** the new "map the schema COMPLETELY (args + all roots) +
+every-string-arg full class set" rule flags `pastes(filter:)` SQLi, `systemDiagnostics` (root sweep),
+`me(token:)` forgery, and `uploadPaste(filename:)` write during routing — the same tunnel-vision root cause
+as Iteration 2 (#14/#16), now closed for GraphQL specifically.
+**Tooling:** zero installs — pure methodology gap.
+**Process:** added the online-writeup cross-check as a standing BETA step (CLAUDE.md + `_TOOLING/beta-mode.md`).
+
+---
+
 ## Iteration 2 — 2026-06-05 · target: demo.testfire.net (AltoroJ, training/accepted-risk-by-design)
 
 **Context:** continuation engagement. Recon artifacts had been deleted, so re-mapped the surface first

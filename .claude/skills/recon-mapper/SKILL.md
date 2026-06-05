@@ -122,6 +122,19 @@ arjun -u "https://${h}/api/endpoint" -m GET  --stable -oJ /tmp/arjun_get.json   
 arjun -u "https://${h}/api/endpoint" -m POST --stable -oJ /tmp/arjun_post.json  # arjun -m = ONE method; also -m JSON for JSON bodies
 ```
 
+**GraphQL endpoints get their OWN complete map — field names are not enough.** When a `/graphql`
+(or `__typename`-answering) endpoint is found, the schema is the surface; map it fully into
+`phase2_surface.json` before routing to `/graphql`:
+- Recover types/fields via introspection, or — if disabled — field suggestions ("Did you mean…").
+- **Enumerate ARGUMENTS per field** (brute a wordlist: `filter id ids public limit cmd host path url file
+  filename token username password content title`); a coercion/type error (not "Unknown argument") = real arg.
+- **Probe each guessed field on ALL roots** (`query` / `mutation` / `subscription`) — a sink on the wrong
+  root stays invisible (e.g. a command-injection field that's a query, not a mutation).
+- Record each arg's apparent role so routing covers its **full** class set: string→`sql-injection`+`xss`;
+  `host`/`url`/`path`→`ssrf`+`os-command-injection`+`path-traversal`; `filename`/`file` on a mutation→
+  `path-traversal` (arbitrary file write). A `login`-style field returning a token → flag for `/jwt`+
+  `/custom-opaque-tokens`, and any `me(token:)`/identity-claim arg → token-forgery candidate.
+
 ### Automated spidering is NOT complete — supplement manually (via Burp Suite Pro)
 Spiders systematically miss these; walk them by hand and add to the surface map:
 - **Forms-based navigation** — one URL performing many actions by body param (spider sees one endpoint, not its modes).
