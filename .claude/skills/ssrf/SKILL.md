@@ -25,6 +25,12 @@ Any feature where the server fetches a URL on your behalf:
 - **P3/lower:** SSRF that reaches internal hosts but returns nothing useful; port-scan-only.
 - **Often noise:** pure blind SSRF — a DNS/HTTP callback with NO demonstrated internal reach. A collaborator ping alone is not impact.
 
+## Reality check FIRST — is the server-side fetch even real? (kills the #1 false positive)
+Many "status check / URL validator / health / connectivity" endpoints **never make a network request** — they echo a canned `{"status":"OK"}` (or "reachable") for *any* input. Confirming SSRF on an inert stub is the fetch-oracle twin of the canned-`200` trap. **Before any SSRF claim, run a reachability differential** and require the response (or timing) to actually *track* what you point it at:
+- Point it at (a) a **reachable** host/port, (b) a **definitely-unreachable** host (`nonexistent-zzz-99999.invalid`), (c) a **closed/unrouteable** target (`10.255.255.1`, a closed loopback port). 
+- **Real fetch:** status/body/timing **differs** across these (e.g. unreachable → DOWN/error/timeout, reachable → OK fast). **Inert stub:** *uniform* OK + *flat* timing across all three → **NOT SSRF, discard.**
+- Only once the endpoint demonstrably reacts to reachability do the OAST/internal probes below mean anything.
+
 ## Detection
 1. Point the param at an OAST/collaborator host. A hit confirms the server makes the request. **DNS-only hit (no HTTP)** = outbound HTTP likely filtered, still SSRF.
 2. Point at `http://127.0.0.1/`, `http://localhost/admin`, `http://[::1]/` — look for response differences, internal content, or admin pages.

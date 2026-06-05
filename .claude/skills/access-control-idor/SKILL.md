@@ -38,6 +38,15 @@ ffuf -u 'https://target/FUZZ' \
 # -fr login filters reflected login redirects; mc 403 keeps existence-leaking paths.
 ```
 
+## Session-liveness canary (don't mistake an expired session for a result)
+Authenticated sessions expire mid-test. When that happens **every** request to a gated endpoint suddenly
+returns the same `302→/login` (or `401`) — which is easy to misread as "the endpoint got fixed", "SQLi
+gone", or "access now denied". Before trusting any authenticated-endpoint result:
+- Keep a **liveness canary** — a known-good owned-resource request (e.g. your own account page). If the
+  canary stops returning your data, the session died: **re-authenticate and re-run**, don't record a verdict.
+- A **uniform** status flip across *all* probes (every one → 302/401) is a session/cookie signal, not a
+  finding. A *real* control change is differential (some pass, some don't).
+
 ## Acquiring valid IDs (obfuscation is not authorization)
 You need a *real* foreign object ID to prove a hit. **Obfuscation is not authorization** — an opaque ID still leaks.
 - **Sequential integers:** increment/decrement by one to the adjacent record. Don't bulk-enumerate; one foreign object proves it.
@@ -49,6 +58,7 @@ You need a *real* foreign object ID to prove a hit. **Obfuscation is not authori
 **Vertical escalation**
 - *Unprotected functionality*: admin URL has no server-side check — request it directly (`/admin`, hidden `/administrator-panel-yb556` found in client JS).
 - *Parameter-based roles*: role/privilege carried in a user-controllable place — flip `admin=true`, `role=1`, `isAdmin`, hidden field, or cookie.
+- *Client-side-trusted authorization state*: **decode every opaque/serialized cookie** (base64, JSON, pipe/CSV blobs). If it encodes the **list of objects/accounts/entitlements you may access**, your **role**, or **balances/limits**, the server is trusting client state for authz — tamper it (add a foreign account ID, flip a role, raise a limit) and replay. A cookie that carries `acct~type~balance|acct~type~balance` is a tamper-to-BOLA primitive; hand the decode ladder to `/custom-opaque-tokens` if the encoding is non-obvious.
 - *Platform / URL-matching quirks*: see Common bypasses below.
 
 **Horizontal escalation (IDOR)**

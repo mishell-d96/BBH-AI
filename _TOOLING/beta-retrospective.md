@@ -5,6 +5,73 @@ worked. Driven by real friction from executed engagements, not speculation. Newe
 
 ---
 
+## Iteration 2 — 2026-06-05 · target: demo.testfire.net (AltoroJ, training/accepted-risk-by-design)
+
+**Context:** continuation engagement. Recon artifacts had been deleted, so re-mapped the surface first
+(MAP-FIRST gate) and drove the **legacy/authenticated** surface the Iteration-1 API pass never covered.
+Worked the impact-scored gaps by hand (no workflow needed — small, well-understood surface).
+
+### What the engagement produced
+- **New confirmed finding:** `POST /doLogin` (legacy form login) SQLi → **full Admin session** + read any
+  account (`_EXPLOIT/2026-06-05_..._SQLi-formlogin-admin_doLogin.md`). **Closes the Iteration-1
+  carry-forward lead** — admin escalation was unproven on the API `/api/login` path; the form path lands it.
+  Clean 3-way differential (SQLi→main.jsp vs wrong-pw→login.jsp vs anon-admin→login.jsp).
+- **New sink:** `search.jsp?query=` reflected XSS (same class as the logged `/sendFeedback` one).
+- **Authz primitive:** `AltoroAccounts` base64 cookie = client-side-trusted account list (tamperable).
+- **Correct NEGATIVE:** `status_check.jsp`/`serverStatusCheckService.jsp?HostName=` looked like SSRF but
+  returns uniform `OK` for every host incl. unrouteable/garbage with flat timing → **inert stub, not SSRF.**
+  Killed before claiming — the reachability differential did its job.
+
+### Friction observed → improvement shipped (all generally applicable)
+| # | Friction (where I was slow/wrong) | Fix shipped |
+|---|-----------------------------------|-------------|
+| 1 | Passed `<svg…>` inline in a curl URL; shell ate the metachars → grep showed "not reflected" → almost concluded the sink was filtered. Burned ~3 probes chasing a phantom filter. | **essential-skills → "Probe-delivery hygiene"**: never put `< > & ' " #`/space inline in a curl URL; use `curl -G --data-urlencode`. Echo-control a plain marker first; suspect the harness before the target on a negative. |
+| 2 | A "status check" endpoint returned `OK` and I started reasoning about SSRF before checking it actually fetches anything. | **ssrf → "Reality check FIRST"**: reachability differential (reachable vs unreachable vs closed) before any SSRF claim; uniform-OK + flat-timing = inert stub = DISCARD. Fetch-oracle twin of the canned-200 guardrail. |
+| 3 | Dumped a full multi-thousand-line transaction history to verify read access — wasteful + breaks data-minimization. | Reinforced **extract ONE marker line** (account label/balance), never the whole record — applied in the new exploit artifact; principle already in access-control-idor/reporting, now habitually enforced. |
+| 4 | zsh `status` is read-only → a probe loop aborted mid-run. | One-liner in essential-skills probe-delivery hygiene (avoid reserved vars `status`/`path`/`pipestatus`). |
+| 5 | Saw the `AltoroAccounts` cookie carrying the account list but had no codified "client-trusts-this-for-authz" play. | **access-control-idor → client-side-trusted authorization state**: decode every opaque cookie; if it carries object IDs/roles/balances, tamper+replay; route odd encodings to `/custom-opaque-tokens`. |
+
+### Tooling decision (critical, deliberate)
+**No new tool installed this iteration** — none was warranted. Everything needed was `curl`/`base64`/
+`grep`. Resisted install-for-completeness per the install-log doctrine (signal over noise). The friction
+was *technique*, not *missing binaries* — so the fixes are skill edits, not installs.
+
+### How to tell it worked (next engagement)
+- Zero false "not reflected" conclusions from shell-mangled payloads (delivery hygiene reflex).
+- No SSRF claim on a validator/health endpoint without a passing reachability differential.
+- Opaque authz cookies decoded + tamper-tested by default, not noticed-and-ignored.
+
+### Carry-forward
+- AltoroJ surface is now well-covered across API + legacy. Remaining untested low-value sinks
+  (`subscribe.jsp`, `survey_questions.jsp`, `cgi.exe`, `default.jsp?content=` = same traversal class)
+  recorded in `_RECON/demo.testfire.net/coverage.md`, skipped-with-reason (low impact / duplicate class).
+- The new probe-delivery-hygiene + SSRF-reality-check rules want exercising on a *real* program to confirm
+  they cut requests-to-first-proof, not just on this demo.
+
+### Iteration 2 addendum — authenticated deep-dive (2026-06-07, operator pushed: "this isn't everything")
+Drove the full **authenticated** surface (legacy bank app) that the broad pass had skimmed.
+- **New confirmed:** `GET /bank/showAccount?listAccounts=N` legacy-UI **BOLA** — low-priv jsmith reads any
+  account, no server-side ownership check (`_EXPLOIT/..._BOLA_legacy-showAccount.md`).
+- **Big proof-discipline win — caught my own overclaim:** the doLogin-SQLi→admin chain *looked* like it
+  should chain to password-change ATO via the admin `changePass` form. **It does not here** — `changePass`
+  returns 200 but the side-effect check refuted it cold (old password still works, new one fails). Same for
+  `addUser` (created user can't authenticate). I **corrected the doLogin exploit file** to scope impact to
+  read/visibility, NOT ATO. This is the canned-200 guardrail catching a *me*-generated overclaim, not just a
+  target's canned response — exactly the failure mode CLAUDE.md warns about.
+- **Clean negatives recorded** (thoroughness, not exhaustion): queryxpath XPath (exceptions swallowed),
+  listAccounts (int-cast, not SQLi), doTransfer (enforces source ownership), showTransactions dates
+  (date-validated, not SQLi), customize.jsp content= (no traversal).
+
+| # | Friction (where I was slow/wrong) | Fix shipped |
+|---|-----------------------------------|-------------|
+| 6 | A sudden uniform `302→/login` across all authenticated probes made me briefly think an endpoint had changed — it was just **session expiry**. | **access-control-idor → "Session-liveness canary"**: keep a known-good owned-resource canary; a *uniform* status flip = dead session (re-auth), only a *differential* flip is a finding. |
+| 7 | **Recurring self-discipline miss:** twice dumped a multi-thousand-line transaction history to stdout to verify a read — wasteful, noisy, and violates data-minimization. The skills already say "extract one marker"; *I* didn't. | Hard rule for myself: every body-inspecting curl gets `\| grep -m1` / `head -c` **in the same command**. Treat an unbounded auth'd-page dump as a mistake, not a step. (Behavioral — reinforced here; the principle already lives in access-control-idor/reporting.) |
+| 8 | `changePass`/`addUser` 200s nearly read as success. | Already covered by the canned-200 guardrail — this engagement is the **proof it works**: side-effect check (login with new vs old credential) refuted both. No new edit; logged as validation. |
+
+**Tooling:** again **no install** — the gaps were technique/discipline, not missing binaries.
+
+---
+
 ## Iteration 1 — 2026-06-05/06 · target: demo.testfire.net (AltoroJ, training/accepted-risk-by-design)
 
 **How insights were gathered:** an 8-candidate target sweep (`wf_9b675c91-675`) where every finder

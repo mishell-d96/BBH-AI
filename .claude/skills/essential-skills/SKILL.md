@@ -58,6 +58,13 @@ Every injection class is confirmed by a probe **plus its NEUTRAL twin** — the 
 
 **"Do you have a neutral control?" must be answered before any finding enters the panel gate.** No control → not yet confirmed.
 
+### Probe-delivery hygiene (kills false negatives)
+A "not reflected / looks encoded" result is often **your shell mangling the probe**, not the server filtering it. Before concluding a sink is safe, make sure the bytes you *think* you sent actually reached the server intact.
+- **Never put injection metacharacters (`< > & ' " # space`) inline in a curl URL** — the shell/URL parser eats or splits them (`&` truncates the query, `<>` get quote-stripped, `#` starts a fragment). Use **`curl -G --data-urlencode 'param=<svg onload=alert(1)>'`** for GET, plain `--data-urlencode` for POST. curl encodes the value, the server sees it whole.
+- **Confirm with an echo control:** send a plain unique marker (`zq9mark`) first — if *that* reflects but the metachar payload "doesn't," the difference is delivery/encoding, not a filter. Re-send via `--data-urlencode` before believing a negative.
+- **zsh reserved vars** (`status`, `path`, `pipestatus`, `argv`) are read-only — using them as loop/capture variables aborts the loop. Use `st`, `code`, etc.
+- A false negative here = a missed bug. When a sink *should* reflect and doesn't, suspect the harness before the target.
+
 ### Getting an OAST host
 Standardize the **OAST (out-of-band) callback as the DEFAULT blind-confirmation channel** — it is jitter-immune binary proof. **Time-delay is the FALLBACK only** and REQUIRES a paired zero-delay control repeated **3×**: report only if all 3 TRUE-probes are slow AND all 3 control-probes are fast.
 - Live domain: `interactsh-client -v` (installed at `~/go/bin/interactsh-client`) — watch for DNS/HTTP hits.
